@@ -80,11 +80,11 @@ $result_category = $conn->query($sql_category);
 <!DOCTYPE html>
 <html lang="th">
 
-<head>
-  <meta charset="UTF-8">
-  <title>สินค้า</title>
-  <link rel="stylesheet" href="./styles/productcard.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<meta charset="UTF-8">
+<title>สินค้า</title>
+<link rel="stylesheet" href="./styles/productcard.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>

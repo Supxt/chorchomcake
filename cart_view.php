@@ -104,7 +104,7 @@ $total_price = 0;
       transition: background-color 0.3s ease;
       align-items: center;
       margin-top: 10px;
-      margin-left: 830px;
+      margin-left: 800px;
     }
 
     .checkout-button:hover {
@@ -164,7 +164,7 @@ $total_price = 0;
           <input type="hidden" name="product_ids[]" value="<?php echo $product['product_id']; ?>">
           <input type="hidden" name="qtys[<?php echo $product['product_id']; ?>]" value="<?php echo $product['qty']; ?>" id="qty_<?php echo $product['product_id']; ?>">
         <?php endforeach; ?>
-        <button type="submit" class="checkout-button">ดำเนินการชำระเงิน</button>
+        <button type="submit" class="checkout-button">ตรวจสอบรายการสินค้า</button>
       </form>
     <?php endif; ?>
   </div>

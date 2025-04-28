@@ -127,6 +127,11 @@ $subtotal = $total - $vat;
       font-size: 12px;
       margin-top: 8px;
     }
+
+    img {
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
   </style>
 </head>
 
@@ -210,7 +215,9 @@ $subtotal = $total - $vat;
       <div class="section">
         <h2>แนบหลักฐานการชำระเงิน</h2>
         <p>กรุณาอัปโหลดรูปภาพสลิปการโอนเงิน (ไฟล์ .jpg, .png ขนาดไม่เกิน 5MB)</p>
-        <input type="file" name="payment_slip" accept="image/png, image/jpeg" required style="margin-top:10px;">
+        <input type="file" name="payment_slip" id="payment_slip" accept="image/png, image/jpeg" required style="margin-top:10px;">
+        <div id="preview" style="margin-top:15px;">
+        </div>
       </div>
       <div class="note">**กรุณาชำระเงินก่อนกดยืนยัน**</div>
 
@@ -219,6 +226,35 @@ $subtotal = $total - $vat;
       </div>
     </form>
   </div>
+  <script>
+    const input = document.getElementById('payment_slip');
+    const preview = document.getElementById('preview');
+
+    input.addEventListener('change', function() {
+      preview.innerHTML = ''; // เคลียร์ก่อนทุกครั้ง
+
+      const file = this.files[0];
+      if (file) {
+        if (file.size > 5 * 1024 * 1024) { // เช็กขนาด > 5MB
+          alert('ไฟล์มีขนาดใหญ่เกิน 5MB');
+          this.value = ''; // ล้างไฟล์ออก
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.style.maxWidth = '300px';
+          img.style.maxHeight = '300px';
+          img.style.border = '1px solid #ccc';
+          img.style.padding = '5px';
+          preview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  </script>
 </body>
 
 </html>

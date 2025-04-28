@@ -55,6 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_id'])) {
     $_SESSION['cart'] = $cart;
   }
 }
+$minDate = date('Y-m-d', strtotime('+3 days'));
 ?>
 
 <!DOCTYPE html>
@@ -182,6 +183,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_id'])) {
       margin-top: 50px;
     }
 
+    .btn-confirm :hover {
+      background-color: rgb(114, 52, 52);
+    }
+
+
     .note {
       color: red;
       font-size: 12px;
@@ -212,7 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_id'])) {
         <div class="form-group"><input type="text" name="fname" placeholder="ชื่อ" value="<?= $user['first_name'] ?? '' ?>" readonly required><input type="text" name="lname" placeholder="นามสกุล" value="<?= $user['last_name'] ?? '' ?>" readonly required></div><input type="text" name="address" placeholder="ที่อยู่" value="<?= $user['address'] ?? '' ?>" readonly required>
         <div class="form-group"><input type="text" name="subdistrict" placeholder="แขวง/ตำบล" value="<?= $user['sub_district'] ?? '' ?>" readonly required><input type="text" name="district" placeholder="เขต/อำเภอ" value="<?= $user['district'] ?? '' ?>" readonly required></div>
         <div class="form-group"><input type="text" name="province" placeholder="จังหวัด" value="<?= $user['province'] ?? '' ?>" readonly required><input type="text" name="zipcode" placeholder="รหัสไปรษณีย์" value="<?= $user['post_code'] ?? '' ?>" readonly required></div>
-        <input type="date" name="receive_date" id="receive_date" required>
+        <input type="date" name="receive_date" id="receive_date" required min="<?= $minDate ?>">
         <div class="note">**กรุณาเลือกวันที่รับสินค้าและตรวจสอบที่อยู่ให้ถูกต้องก่อนยืนยันการสั่งซื้อ**</div>
       </div>
       <div class="cart-section">

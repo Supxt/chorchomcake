@@ -148,7 +148,7 @@ $result = $conn->query($sql);
         <i class="fas fa-chevron-down"></i>
       </li>
       <ul class="submenu">
-        <li><a href="#">วิเคราะห์ข้อมูล</a></li>
+        <li><a href="dashboard.php">วิเคราะห์ข้อมูล</a></li>
       </ul>
 
       <li onclick="toggleMenu(this)">
