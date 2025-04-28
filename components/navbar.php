@@ -1,4 +1,3 @@
-<!-- navbar.php -->
 <?php
 
 $current_page = basename($_SERVER['PHP_SELF']);
@@ -7,7 +6,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 if (isset($_GET['logout'])) {
     session_unset();      // ล้างตัวแปรใน session
     session_destroy();    // ทำลาย session
-    header("Location: login.php"); // 
+    header("Location: login.php");
     exit();
 }
 ?>

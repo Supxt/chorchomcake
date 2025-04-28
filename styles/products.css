@@ -5,7 +5,7 @@
 }
 
 body {
-  font-family: 'Segoe UI', sans-serif;
+  font-family: "Segoe UI", sans-serif;
   line-height: 1.6;
   background-color: #fefefe;
   color: #333;
@@ -102,7 +102,6 @@ body {
   font-weight: bold;
 }
 
-
 .btn-cart {
   background-color: #fff;
   color: #333;
@@ -149,4 +148,16 @@ body {
 
 .pagination a:hover {
   background-color: #ddd;
+}
+
+.p_name {
+  font-size: 16px;
+  font-weight: bold;
+  line-height: 1.4;
+  max-height: 2.8em; /* 1.4 * 2 lines */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* <-- this limits to 2 lines */
+  -webkit-box-orient: vertical;
 }

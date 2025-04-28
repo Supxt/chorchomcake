@@ -207,7 +207,6 @@ $cat_result = $conn->query("SELECT * FROM category");
 
 <body>
 
-  <!-- Navbar -->
   <div class="navbar">
     <div class="title"><i class="fas fa-box"></i> เพิ่มสินค้า</div>
     <button class="logout-btn" onclick="logout()">ออกจากระบบ</button>

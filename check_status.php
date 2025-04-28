@@ -18,7 +18,6 @@ $result = $conn->query($sql);
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: #fff7f0;
-      padding: 20px;
     }
 
     .container {

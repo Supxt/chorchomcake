@@ -6,8 +6,8 @@ include('dbconnect.php');
 // Handle Add-to-Cart (AJAX or Form)
 // -----------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $p_id = $_POST['product_id'];
-  $p_name = $_POST['product_name'];
+  $p_id = $_POST['p_id'];
+  $p_name = $_POST['p_name'];
   $price = $_POST['price'];
   $qty = $_POST['qty'] ?? 1;
   $image = $_POST['image'] ?? 'default.jpg';
@@ -25,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_SESSION['cart'][$p_id]['qty'] += $qty;
   } else {
     $_SESSION['cart'][$p_id] = [
-      'product_id' => $p_id,
-      'product_name' => $p_name,
+      'p_id' => $p_id,
+      'p_name' => $p_name,
       'price' => $price,
       'qty' => $qty,
       'image' => $product['image'] ?? 'default.jpg',
@@ -119,8 +119,8 @@ $result_category = $conn->query($sql_category);
               </button>
 
               <form action="checkout.php" method="POST" class="form-button">
-                <input type="hidden" name="product_id" value="<?= $row['p_id'] ?>">
-                <input type="hidden" name="product_name" value="<?= htmlspecialchars($row['p_name']) ?>">
+                <input type="hidden" name="p_id" value="<?= $row['p_id'] ?>">
+                <input type="hidden" name="p_name" value="<?= htmlspecialchars($row['p_name']) ?>">
                 <input type="hidden" name="price" value="<?= $row['price'] ?>">
                 <input type="hidden" name="qty" value="1">
                 <button type="submit" class="btn-buy">ซื้อเลย</button>
@@ -151,7 +151,7 @@ $result_category = $conn->query($sql_category);
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
           },
-          body: `product_id=${productId}&product_name=${encodeURIComponent(productName)}&price=${price}&ajax=1`
+          body: `p_id=${productId}&p_name=${encodeURIComponent(productName)}&price=${price}&ajax=1`
         })
         .then(res => res.json())
         .then(data => {
