@@ -6,9 +6,9 @@ include('./components/navbar.php');
 // -----------------------------
 // Handle Add to Cart (Form Submission)
 // -----------------------------
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_id'])) {
-  $p_id = $_POST['product_id'];
-  $p_name = $_POST['product_name'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['p_id'])) {
+  $p_id = $_POST['p_id'];
+  $p_name = $_POST['p_name'];
   $price = $_POST['price'];
   $qty = $_POST['qty'] ?? 1;
 
@@ -24,8 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_id'])) {
     $_SESSION['cart'][$p_id]['qty'] += $qty;
   } else {
     $_SESSION['cart'][$p_id] = [
-      'product_id' => $p_id,
-      'product_name' => $p_name,
+      'p_id' => $p_id,
+      'p_name' => $p_name,
       'price' => $price,
       'qty' => $qty,
       'image' => $product['image'] ?? 'default.jpg',
@@ -76,8 +76,8 @@ $product = $result->fetch_assoc();
           <button type="button" onclick="changeQty(1)">+</button>
         </div>
 
-        <input type="hidden" name="product_id" value="<?php echo $product['p_id']; ?>">
-        <input type="hidden" name="product_name" value="<?php echo $product['p_name']; ?>">
+        <input type="hidden" name="p_id" value="<?php echo $product['p_id']; ?>">
+        <input type="hidden" name="p_name" value="<?php echo $product['p_name']; ?>">
         <input type="hidden" name="price" id="price" value="<?php echo $product['price']; ?>">
 
         <button type="submit" class="add-cart-btn">🛒 เพิ่มไปยังรถเข็น</button>
