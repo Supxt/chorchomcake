@@ -10,21 +10,52 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $orderData = $_POST;
 
-// สรุปรายการสินค้า
-$cart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
+$cart = [];
+$total = 0;
+$total_qty = 0;
+
+// Check if coming from Buy Now session
 if (isset($_SESSION['buy_now'])) {
   $cart = [$_SESSION['buy_now']];
 }
 
-$total = 0;
-$total_qty = 0;
-foreach ($cart as $item) {
-  $total += $item['price'] * $item['qty'];
-  $total_qty += $item['qty'];
+// Check if coming from Cart POST
+else if (isset($_POST['cart_p_ids'])) {
+  foreach ($_POST['cart_p_ids'] as $p_id) {
+    $p_id = intval($p_id);
+    $qty = intval($_POST['cart_qtys'][$p_id] ?? 1);
+    if ($qty <= 0) $qty = 1;
+
+    // Fetch product from DB (not trust client)
+    $sql = "SELECT * FROM product WHERE p_id = $p_id";
+    $result = $conn->query($sql);
+    if ($result && $product = $result->fetch_assoc()) {
+      $cart[] = [
+        'p_id' => $product['p_id'],
+        'p_name' => $product['p_name'],
+        'price' => $product['price'],
+        'qty' => $qty,
+        'image' => $product['image'] ?? '',
+        'code' => $product['code'] ?? '',
+      ];
+      $total += $product['price'] * $qty;
+      $total_qty += $qty;
+    }
+  }
+} else {
+  // fallback
+  $cart = $_SESSION['cart'] ?? [];
+  foreach ($cart as $item) {
+    $total += $item['price'] * $item['qty'];
+    $total_qty += $item['qty'];
+  }
 }
+
+// Calculate subtotal + VAT
 $vat = ($total * 7) / 107;
 $subtotal = $total - $vat;
 ?>
+
 
 <!DOCTYPE html>
 <html lang="th">
@@ -162,16 +193,14 @@ $subtotal = $total - $vat;
           </tr>
         </thead>
         <tbody>
-          <?php foreach ($cart as $item): ?>
-            <tr>
-              <td class="id-col"><?= htmlspecialchars($item['code']) ?></td>
-              <td class="name-col"><?= htmlspecialchars($item['p_name']) ?></td>
-              <td class="price-col"><?= $item['qty'] ?></td>
-              <td class="price-col">
-                </tdclass><?= number_format($item['price'], 2) ?> </td>
-              <td class="price-col">
-                </tdclass><?= number_format($item['price'] * $item['qty'], 2) ?> </td>
-            </tr>
+        <?php foreach ($cart as $item): ?>
+          <tr>
+            <td><?= htmlspecialchars($item['code']) ?></td>
+            <td><?= htmlspecialchars($item['p_name']) ?></td>
+            <td><?= $item['qty'] ?></td>
+            <td><?= number_format($item['price'], 2) ?> บาท</td>
+            <td><?= number_format($item['price'] * $item['qty'], 2) ?> บาท</td>
+          </tr>
           <?php endforeach; ?>
         </tbody>
       </table>

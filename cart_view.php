@@ -159,13 +159,14 @@ $total_price = 0;
         <span><?php echo number_format($total_price, 2); ?> บาท</span>
       </div>
 
-      <form action="checkout.php" method="get">
+      <form action="checkout.php" method="POST">
         <?php foreach ($cart as $product): ?>
-          <input type="hidden" name="p_ids[]" value="<?php echo $product['p_id']; ?>">
-          <input type="hidden" name="qtys[<?php echo $product['p_id']; ?>]" value="<?php echo $product['qty']; ?>" id="qty_<?php echo $product['p_id']; ?>">
+          <input type="hidden" name="cart_p_ids[]" value="<?= $product['p_id']; ?>">
+          <input type="hidden" name="cart_qtys[<?= $product['p_id']; ?>]" value="<?= $product['qty']; ?>" id="qty_<?= $product['p_id']; ?>">     
         <?php endforeach; ?>
         <button type="submit" class="checkout-button">ตรวจสอบรายการสินค้า</button>
       </form>
+
     <?php endif; ?>
   </div>
   <script>

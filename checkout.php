@@ -3,71 +3,69 @@ session_start();
 include('dbconnect.php');
 include('./components/navbar.php');
 
-// --- Check if user logged in ---
+$showLoginAlert = false;
+
 if (!isset($_SESSION['email'])) {
-    // Not logged in → Show SweetAlert and stop
-    echo '
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-      Swal.fire({
-        icon: "warning",
-        title: "คุณยังไม่ได้ login",
-        text: "กรุณาเข้าสู่ระบบเพื่อทำการสั่งซื้อ",
-        showCancelButton: true,
-        confirmButtonText: "เข้าสู่ระบบ",
-        cancelButtonText: "สมัครสมาชิก",
-        allowOutsideClick: false
-      }).then((result) => {
-        if (result.isConfirmed) {
-          window.location.href = "login.php";
-        } else {
-          window.location.href = "register.php";
+  $showLoginAlert = true;
+}
+
+// Check if Cart Checkout
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cart_p_ids'])) {
+    $cartProducts = [];
+    $total = 0;
+    $total_qty = 0;
+    
+    foreach ($_POST['cart_p_ids'] as $p_id) {
+        $p_id = intval($p_id);
+        $qty = intval($_POST['cart_qtys'][$p_id] ?? 1);
+        if ($qty <= 0) $qty = 1;
+        
+        $sql = "SELECT * FROM product WHERE p_id = $p_id";
+        $result = $conn->query($sql);
+        if ($result && $product = $result->fetch_assoc()) {
+            $cartProducts[] = [
+                'p_id' => $product['p_id'],
+                'p_name' => $product['p_name'],
+                'price' => $product['price'],
+                'qty' => $qty,
+                'image' => $product['image'] ?? 'default.jpg',
+                'code' => $product['code'] ?? '',
+            ];
+            $total += $product['price'] * $qty;
+            $total_qty += $qty;
         }
-      });
-    </script>';
-    exit;
-}
-
-// --- If logged in, continue normal checkout ---
-
-if (isset($_SESSION['pending_buy_now'])) {
-    $_SESSION['buy_now'] = $_SESSION['pending_buy_now'];
-    unset($_SESSION['pending_buy_now']);
-    header('Location: checkout.php');
-    exit;
-}
-
-if (!isset($_SESSION['buy_now'])) {
+    }
+} else if (isset($_SESSION['buy_now'])) {
+    // Normal Buy Now flow
+    $buyNowItem = $_SESSION['buy_now'];
+    
+    $p_id = intval($buyNowItem['p_id']);
+    $sql = "SELECT * FROM product WHERE p_id = $p_id";
+    $result = $conn->query($sql);
+    $product = $result->fetch_assoc();
+    
+    $cartProducts = [];
+    $total = 0;
+    $total_qty = 0;
+    
+    if ($product) {
+        $cartProducts[] = [
+            'p_id' => $product['p_id'],
+            'p_name' => $product['p_name'],
+            'price' => $product['price'],
+            'qty' => $buyNowItem['qty'],
+            'image' => $product['image'] ?? 'default.jpg',
+            'code' => $product['code'] ?? '',
+        ];
+        $total += $product['price'] * $buyNowItem['qty'];
+        $total_qty += $buyNowItem['qty'];
+    }
+} else {
     header('Location: product.php');
     exit;
 }
 
-// Load product from buy_now
-$buyNowItem = $_SESSION['buy_now'];
-
-// Fetch product detail
-$p_id = intval($buyNowItem['p_id']);
-$sql = "SELECT * FROM product WHERE p_id = $p_id";
-$result = $conn->query($sql);
-$product = $result->fetch_assoc();
-
-// Prepare cart array
-$cart = [];
-$total = 0;
-$total_qty = 0;
-
-if ($product) {
-    $cart[] = [
-        'p_id' => $product['p_id'],
-        'p_name' => $product['p_name'],
-        'price' => $product['price'],
-        'qty' => $buyNowItem['qty'],
-        'image' => $product['image'] ?? 'default.jpg',
-        'code' => $product['code'] ?? '',
-    ];
-}
-
-// Fetch user information
+// Fetch user info if logged in
 $user = null;
 if (isset($_SESSION['email'])) {
     $email = $_SESSION['email'];
@@ -77,8 +75,8 @@ if (isset($_SESSION['email'])) {
     $resultUser = $stmt->get_result();
     $user = $resultUser->fetch_assoc();
 }
-$minDate = date('Y-m-d', strtotime('+3 days'));
 ?>
+
 
 
 <!DOCTYPE html>
@@ -219,19 +217,22 @@ $minDate = date('Y-m-d', strtotime('+3 days'));
   </style>
 </head>
 <script>
-  const receiveDateInput = document.getElementById("receive_date");
-  const today = new Date();
-  today.setDate(today.getDate() + 3); // เพิ่ม 3 วัน
+  document.addEventListener('DOMContentLoaded', function() {
+    const receiveDateInput = document.getElementById("receive_date");
+    if (receiveDateInput) {
+      const today = new Date();
+      today.setDate(today.getDate() + 3);
 
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  const minDate = `${yyyy}-${mm}-${dd}`;
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const minDate = `${yyyy}-${mm}-${dd}`;
 
-  receiveDateInput.min = minDate;
-  receiveDateInput.value = minDate;
+      receiveDateInput.min = minDate;
+      receiveDateInput.value = minDate;
+    }
+  });
 </script>
-
 <body>
 
   <form action="payment.php" method="post">
@@ -257,18 +258,16 @@ $minDate = date('Y-m-d', strtotime('+3 days'));
               <th class="text-right">ราคารวม (บาท)</th>
             </tr>
           </thead>
-          <tbody><?php foreach ($cart as $item):
-                    $subtotal = $item['price'] * $item['qty'];
-                    $total += $subtotal;
-                    $total_qty += $item['qty'];
-                  ?><tr>
-                <td><?php echo $item['code']; ?></td>
-                <td><?php echo $item['p_name']; ?></td>
-                <td><img src="image/<?php echo $item['image']; ?>" alt=""></td>
-                <td class="text-right"><?php echo number_format($item['price'], 2); ?></td>
-                <td class="text-right"><?php echo $item['qty']; ?></td>
-                <td class="text-right"><?php echo number_format($subtotal, 2); ?></td>
-              </tr><?php endforeach; ?></tbody>
+          <?php foreach ($cartProducts as $item): ?>
+            <tr>
+              <td><?= htmlspecialchars($item['code']) ?></td>
+              <td><?= htmlspecialchars($item['p_name']) ?></td>
+              <td><img src="image/<?= htmlspecialchars($item['image']) ?>" alt=""></td>
+              <td class="text-right"><?= number_format($item['price'], 2) ?> บาท</td>
+              <td class="text-right"><?= $item['qty'] ?></td>
+              <td class="text-right"><?= number_format($item['price'] * $item['qty'], 2) ?> บาท</td>
+            </tr>
+            <?php endforeach; ?>
         </table>
         <div class="cart-summary">
           <p> จำนวนสินค้า: <strong><?php echo $total_qty; ?></strong> รายการ</p>
@@ -328,3 +327,29 @@ $minDate = date('Y-m-d', strtotime('+3 days'));
 </body>
 
 </html>
+
+
+<?php if ($showLoginAlert): ?>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  Swal.fire({
+    icon: 'warning',
+    title: 'คุณยังไม่ได้ login',
+    text: 'กรุณาเข้าสู่ระบบเพื่อทำการสั่งซื้อ',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'เข้าสู่ระบบ',
+    cancelButtonText: 'สมัครสมาชิก',
+    allowOutsideClick: false
+  }).then((result) => {
+    if (result.isConfirmed) {
+      window.location.href = 'login.php';
+    } else {
+      window.location.href = 'register.php';
+    }
+  });
+});
+</script>
+<?php endif; ?>
