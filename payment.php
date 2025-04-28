@@ -165,7 +165,7 @@ $subtotal = $total - $vat;
           <?php foreach ($cart as $item): ?>
             <tr>
               <td class="id-col"><?= htmlspecialchars($item['code']) ?></td>
-              <td class="name-col"><?= htmlspecialchars($item['product_name']) ?></td>
+              <td class="name-col"><?= htmlspecialchars($item['p_name']) ?></td>
               <td class="price-col"><?= $item['qty'] ?></td>
               <td class="price-col">
                 </tdclass><?= number_format($item['price'], 2) ?> </td>

@@ -144,12 +144,12 @@ $total_price = 0;
         <div class="cart-item">
           <div><img src="image/<?php echo $product['image']; ?>" alt="Product Image"></div>
           <div class="item-code"><?php echo $product['code']; ?></div>
-          <div class="item-name"><?php echo $product['product_name']; ?></div>
+          <div class="item-name"><?php echo $product['p_name']; ?></div>
           <div class="item-price"><?php echo number_format($product['price'], 2); ?> บาท</div>
           <input type="number" class="qty-input" data-price="<?php echo $product['price']; ?>" value="<?php echo $product['qty']; ?>" min="1">
           <div class="item-total"><?php echo number_format($item_total, 2); ?> บาท</div>
           <div class="item-remove">
-            <a href="cart_remove.php?p_id=<?php echo $product['product_id']; ?>">🗑️</a>
+            <a href="cart_remove.php?p_id=<?php echo $product['p_id']; ?>">🗑️</a>
           </div>
         </div>
       <?php endforeach; ?>
@@ -161,8 +161,8 @@ $total_price = 0;
 
       <form action="checkout.php" method="get">
         <?php foreach ($cart as $product): ?>
-          <input type="hidden" name="product_ids[]" value="<?php echo $product['product_id']; ?>">
-          <input type="hidden" name="qtys[<?php echo $product['product_id']; ?>]" value="<?php echo $product['qty']; ?>" id="qty_<?php echo $product['product_id']; ?>">
+          <input type="hidden" name="p_ids[]" value="<?php echo $product['p_id']; ?>">
+          <input type="hidden" name="qtys[<?php echo $product['p_id']; ?>]" value="<?php echo $product['qty']; ?>" id="qty_<?php echo $product['p_id']; ?>">
         <?php endforeach; ?>
         <button type="submit" class="checkout-button">ตรวจสอบรายการสินค้า</button>
       </form>

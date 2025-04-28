@@ -3,60 +3,83 @@ session_start();
 include('dbconnect.php');
 include('./components/navbar.php');
 
+// --- Check if user logged in ---
+if (!isset($_SESSION['email'])) {
+    // Not logged in → Show SweetAlert and stop
+    echo '
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+      Swal.fire({
+        icon: "warning",
+        title: "คุณยังไม่ได้ login",
+        text: "กรุณาเข้าสู่ระบบเพื่อทำการสั่งซื้อ",
+        showCancelButton: true,
+        confirmButtonText: "เข้าสู่ระบบ",
+        cancelButtonText: "สมัครสมาชิก",
+        allowOutsideClick: false
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = "login.php";
+        } else {
+          window.location.href = "register.php";
+        }
+      });
+    </script>';
+    exit;
+}
+
+// --- If logged in, continue normal checkout ---
+
+if (isset($_SESSION['pending_buy_now'])) {
+    $_SESSION['buy_now'] = $_SESSION['pending_buy_now'];
+    unset($_SESSION['pending_buy_now']);
+    header('Location: checkout.php');
+    exit;
+}
+
+if (!isset($_SESSION['buy_now'])) {
+    header('Location: product.php');
+    exit;
+}
+
+// Load product from buy_now
+$buyNowItem = $_SESSION['buy_now'];
+
+// Fetch product detail
+$p_id = intval($buyNowItem['p_id']);
+$sql = "SELECT * FROM product WHERE p_id = $p_id";
+$result = $conn->query($sql);
+$product = $result->fetch_assoc();
+
+// Prepare cart array
 $cart = [];
 $total = 0;
 $total_qty = 0;
-$buyNowItem = null;
 
-// ตรวจสอบว่าผู้ใช้ล็อกอินหรือไม่
-$user = null;
-if (isset($_SESSION['email'])) {
-  $email = $_SESSION['email'];
-  $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
-  $stmt->bind_param("s", $email);
-  $stmt->execute();
-  $result = $stmt->get_result();
-  $user = $result->fetch_assoc();
+if ($product) {
+    $cart[] = [
+        'p_id' => $product['p_id'],
+        'p_name' => $product['p_name'],
+        'price' => $product['price'],
+        'qty' => $buyNowItem['qty'],
+        'image' => $product['image'] ?? 'default.jpg',
+        'code' => $product['code'] ?? '',
+    ];
 }
 
-// ตรวจสอบว่ามีการซื้อทันทีหรือไม่
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_id'])) {
-  $buyNowItem = [
-    'product_id' => $_POST['product_id'],
-    'product_name' => $_POST['product_name'],
-    'price' => $_POST['price'],
-    'qty' => $_POST['qty'] ?? 1,
-  ];
-
-  $p_id = intval($buyNowItem['product_id']);
-  $sql = "SELECT * FROM product WHERE p_id = $p_id";
-  $result = $conn->query($sql);
-  $product = $result->fetch_assoc();
-
-  $buyNowItem['image'] = $product['image'] ?? 'default.jpg';
-  $buyNowItem['code'] = $product['code'] ?? '';
-
-  $cart = [$buyNowItem];
-} else {
-  $cart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
-
-  if (empty($cart)) {
-    header("Location: cart_view.php");
-    exit;
-  }
-  if (isset($_GET['qtys']) && is_array($_GET['qtys'])) {
-    foreach ($cart as &$item) {
-      $pid = $item['product_id'];
-      if (isset($_GET['qtys'][$pid])) {
-        $item['qty'] = intval($_GET['qtys'][$pid]); // อัปเดตจำนวนใหม่
-      }
-    }
-    unset($item);
-    $_SESSION['cart'] = $cart;
-  }
+// Fetch user information
+$user = null;
+if (isset($_SESSION['email'])) {
+    $email = $_SESSION['email'];
+    $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $resultUser = $stmt->get_result();
+    $user = $resultUser->fetch_assoc();
 }
 $minDate = date('Y-m-d', strtotime('+3 days'));
 ?>
+
 
 <!DOCTYPE html>
 <html lang="th">
@@ -240,7 +263,7 @@ $minDate = date('Y-m-d', strtotime('+3 days'));
                     $total_qty += $item['qty'];
                   ?><tr>
                 <td><?php echo $item['code']; ?></td>
-                <td><?php echo $item['product_name']; ?></td>
+                <td><?php echo $item['p_name']; ?></td>
                 <td><img src="image/<?php echo $item['image']; ?>" alt=""></td>
                 <td class="text-right"><?php echo number_format($item['price'], 2); ?></td>
                 <td class="text-right"><?php echo $item['qty']; ?></td>
@@ -252,7 +275,7 @@ $minDate = date('Y-m-d', strtotime('+3 days'));
           <p> ราคาทั้งหมด: <strong><?php echo number_format($total, 2); ?></strong>
           </p>
         </div>
-        <div style="text-align: right;"><button type="reset" class="btn btn-cancel">ยกเลิกการสั่งซื้อ</button><button type="submit" class="btn btn-confirm">ดำเนินการชำระตัง</button></div>
+        <div style="text-align: right;"><button type="reset" class="btn btn-cancel">ยกเลิกการสั่งซื้อ</button><button type="submit" class="btn btn-confirm">ดำเนินการชำระเงิน</button></div>
       </div>
     </div>
   </form>

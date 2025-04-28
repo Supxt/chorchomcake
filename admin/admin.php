@@ -134,7 +134,6 @@ $result = $conn->query($sql);
 </head>
 
 <body>
-  <!-- Navbar -->
   <div class="navbar">
     <div class="title"><i class="fas fa-user-shield"></i> แอดมิน</div>
     <button class="logout-btn" onclick="logout()">ออกจากระบบ</button>

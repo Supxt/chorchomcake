@@ -1,85 +1,95 @@
-<!-- TODO please do this without using catch it always will throw to catch -->
 <?php
 session_start();
 include('dbconnect.php');
 include('./components/navbar.php');
-// -----------------------------
-// Handle Add-to-Cart (AJAX or Form)
-// -----------------------------
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $p_id = $_POST['product_id'];
-  $p_name = $_POST['product_name'];
-  $price = $_POST['price'];
-  $qty = $_POST['qty'] ?? 1;
-  $is_ajax = isset($_POST['ajax']) && $_POST['ajax'] == '1';
 
+// Initialize Buy Now data
+$buyNowProduct = null;
 
-  $sql = "SELECT * FROM product WHERE p_id = $p_id";
-  $result = $conn->query($sql);
+// Handle Add-to-Cart
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['p_id'], $_POST['p_name'], $_POST['price'])) {
+  if (isset($_POST['buy_now']) && $_POST['buy_now'] == '1') {
+    // Check if user is logged in
+    if (!isset($_SESSION['email'])) {
+        // Not logged in → Save product temporarily
+        $_SESSION['pending_buy_now'] = [
+            'p_id' => intval($_POST['p_id']),
+            'p_name' => trim($_POST['p_name']),
+            'price' => floatval($_POST['price']),
+            'qty' => intval($_POST['qty'] ?? 1),
+        ];
+        // Redirect to login first
+        header('Location: checkout.php');
+        exit;
+    }
 
-  if (!$result) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Database query failed']);
-    exit;
-  }
-
-  $product = $result->fetch_assoc();
-
-  if (!$product) {
-    http_response_code(404);
-    echo json_encode(['success' => false, 'message' => 'Product not found']);
-    exit;
-  }
-
-  if (!isset($_SESSION['cart'])) {
-    $_SESSION['cart'] = [];
-  }
-
-  if (isset($_SESSION['cart'][$p_id])) {
-    $_SESSION['cart'][$p_id]['qty'] += $qty;
-  } else {
-    $_SESSION['cart'][$p_id] = [
-      'product_id' => $p_id,
-      'product_name' => $p_name,
-      'price' => $price,
-      'qty' => $qty,
-      'image' => $product['image'] ?? 'default.jpg',
-      'code' => $product['code'] ?? '',
+    // Already logged in → Normal Buy Now
+    $_SESSION['buy_now'] = [
+        'p_id' => intval($_POST['p_id']),
+        'p_name' => trim($_POST['p_name']),
+        'price' => floatval($_POST['price']),
+        'qty' => intval($_POST['qty'] ?? 1),
     ];
-  }
+    header('Location: checkout.php');
+    exit;
+}
+    else {
+        // Normal Add to Cart
+        $p_id = intval($_POST['p_id']);
+        $p_name = trim($_POST['p_name']);
+        $price = floatval($_POST['price']);
+        $qty = intval($_POST['qty'] ?? 1);
 
-  if ($is_ajax) {
-    header('Content-Type: application/json');
-    $cart_count = array_sum(array_column($_SESSION['cart'], 'qty'));
-    echo json_encode(['success' => true, 'cart_count' => $cart_count]);
-    exit;
-  } else {
-    header("Location: product.php");
-    exit;
-  }
+        $sql = "SELECT * FROM product WHERE p_id = $p_id";
+        $result = $conn->query($sql);
+
+        if ($result && $product = $result->fetch_assoc()) {
+            if (!isset($_SESSION['cart'])) {
+                $_SESSION['cart'] = [];
+            }
+
+            if (isset($_SESSION['cart'][$p_id])) {
+                $_SESSION['cart'][$p_id]['qty'] += $qty;
+            } else {
+                $_SESSION['cart'][$p_id] = [
+                    'p_id' => $p_id,
+                    'p_name' => $p_name,
+                    'price' => $price,
+                    'qty' => $qty,
+                    'image' => $product['image'] ?? 'default.jpg',
+                    'code' => $product['code'] ?? '',
+                ];
+            }
+
+            $_SESSION['success_message'] = 'เพิ่มสินค้าในตะกร้าเรียบร้อยแล้ว!';
+        } else {
+            $_SESSION['error_message'] = 'ไม่พบข้อมูลสินค้า!';
+        }
+
+        $redirect_url = $_POST['current_url'] ?? 'product.php';
+        header("Location: $redirect_url");
+        exit;
+    }
 }
 
-// -----------------------------
-// Product Page Load
-// -----------------------------
-
+// Product Listing
 $category = $_GET['category'] ?? 'all';
 $limit = 6;
-$page = $_GET['page'] ?? 1;
+$page = intval($_GET['page'] ?? 1);
 $start = ($page - 1) * $limit;
 
 if ($category === 'all') {
-  $sql_product = "SELECT * FROM product LIMIT $start, $limit";
-  $total_sql = "SELECT COUNT(*) as total FROM product";
+    $sql_product = "SELECT * FROM product LIMIT $start, $limit";
+    $total_sql = "SELECT COUNT(*) as total FROM product";
 } else {
-  $category_safe = $conn->real_escape_string($category);
-  $sql_product = "SELECT * FROM product p
+    $category_safe = $conn->real_escape_string($category);
+    $sql_product = "SELECT * FROM product p
+                    LEFT JOIN category c ON p.category_id = c.category_id
+                    WHERE c.category_name = '$category_safe'
+                    LIMIT $start, $limit";
+    $total_sql = "SELECT COUNT(*) as total FROM product p
                   LEFT JOIN category c ON p.category_id = c.category_id
-                  WHERE c.category_name = '$category_safe'
-                  LIMIT $start, $limit";
-  $total_sql = "SELECT COUNT(*) as total FROM product p
-                LEFT JOIN category c ON p.category_id = c.category_id
-                WHERE c.category_name = '$category_safe'";
+                  WHERE c.category_name = '$category_safe'";
 }
 
 $result_product = $conn->query($sql_product);
@@ -101,121 +111,113 @@ $result_category = $conn->query($sql_category);
   <link rel="stylesheet" href="./styles/products.css">
   <link rel="stylesheet" href="./styles/productcard.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 </head>
 
 <body>
 
-  <!-- Category Filter -->
-  <div class="categories">
+<?php
+if (isset($_SESSION['success_message']) || isset($_SESSION['error_message'])):
+?>
+<script>
+<?php if (isset($_SESSION['success_message'])): ?>
+    Swal.fire({
+      icon: 'success',
+      title: 'สำเร็จ',
+      text: '<?= addslashes($_SESSION['success_message']) ?>',
+      confirmButtonText: 'ตกลง'
+    });
+<?php unset($_SESSION['success_message']); endif; ?>
+
+<?php if (isset($_SESSION['error_message'])): ?>
+    Swal.fire({
+      icon: 'error',
+      title: 'เกิดข้อผิดพลาด',
+      text: '<?= addslashes($_SESSION['error_message']) ?>',
+      confirmButtonText: 'ตกลง'
+    });
+<?php unset($_SESSION['error_message']); endif; ?>
+</script>
+<?php endif; ?>
+
+<!-- Category Filter -->
+<div class="categories">
     <div class="category-row">
-      <a href="?category=all" class="category-item <?= $category === 'all' ? 'active' : '' ?>">สินค้าทั้งหมด</a>
-      <?php while ($row = $result_category->fetch_assoc()): ?>
-        <a href="?category=<?= urlencode($row['category_name']) ?>"
-          class="category-item <?= $category === $row['category_name'] ? 'active' : '' ?>">
-          <?= $row['category_name'] ?>
-        </a>
-      <?php endwhile; ?>
+        <a href="?category=all" class="category-item <?= $category === 'all' ? 'active' : '' ?>">สินค้าทั้งหมด</a>
+        <?php while ($row = $result_category->fetch_assoc()): ?>
+            <a href="?category=<?= urlencode($row['category_name']) ?>"
+               class="category-item <?= $category === $row['category_name'] ? 'active' : '' ?>">
+                <?= htmlspecialchars($row['category_name']) ?>
+            </a>
+        <?php endwhile; ?>
     </div>
-  </div>
+</div>
 
-  <!-- Product Cards -->
-  <div class="container">
-    <?php while ($row = $result_product->fetch_assoc()): ?>
-      <div class="product-card">
-        <a href="product_detail.php?p_id=<?= $row['p_id'] ?>" style="text-decoration: none; color: inherit;">
-          <img src="image/<?= $row['image'] ?>" alt="<?= $row['p_name'] ?>" class="image">
-          <div class="product-info">
-            <div class="p_name"><?= $row['code'] . ' ' . $row['p_name'] ?></div>
-            <div class="price"><?= number_format($row['price'], 2) ?> บาท</div>
-            <div class="product-buttons">
-              <button class="btn-cart"
-                onclick="addToCart(event, <?= $row['p_id'] ?>, '<?= addslashes($row['p_name']) ?>', <?= $row['price'] ?>)">
-                เพิ่มในตะกร้า
-              </button>
-              <form action="checkout.php" method="POST" class="form-button">
-                <input type="hidden" name="product_id" value="<?= $row['p_id'] ?>">
-                <input type="hidden" name="product_name" value="<?= htmlspecialchars($row['p_name']) ?>">
-                <input type="hidden" name="price" value="<?= $row['price'] ?>">
-                <input type="hidden" name="qty" value="1">
-                <button type="submit" class="btn-buy">ซื้อเลย</button>
-              </form>
+<!-- Product Cards -->
+<div class="container">
+    <?php while ($product = $result_product->fetch_assoc()): ?>
+    <div class="product-card">
+        <a href="product_detail.php?p_id=<?= $product['p_id'] ?>" style="text-decoration: none; color: inherit;">
+            <img src="image/<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['p_name']) ?>" class="image">
+            <div class="product-info">
+                <div class="p_name"><?= htmlspecialchars($product['code']) . ' ' . htmlspecialchars($product['p_name']) ?></div>
+                <div class="price"><?= number_format($product['price'], 2) ?> บาท</div>
+                <div class="product-buttons">
+
+                    <!-- Add to Cart -->
+                    <form action="product.php" method="POST" style="display:inline-block;">
+                        <input type="hidden" name="p_id" value="<?= $product['p_id'] ?>">
+                        <input type="hidden" name="p_name" value="<?= htmlspecialchars($product['p_name']) ?>">
+                        <input type="hidden" name="price" value="<?= $product['price'] ?>">
+                        <input type="hidden" name="qty" value="1">
+                        <input type="hidden" name="current_url" value="<?= htmlspecialchars($_SERVER['REQUEST_URI']) ?>">
+                        <button type="submit" class="btn-cart">เพิ่มในตะกร้า</button>
+                    </form>
+
+                    <!-- Buy Now -->
+                    <form action="product.php" method="POST" class="form-button" style="display:inline-block;">
+                        <input type="hidden" name="p_id" value="<?= $product['p_id'] ?>">
+                        <input type="hidden" name="p_name" value="<?= htmlspecialchars($product['p_name']) ?>">
+                        <input type="hidden" name="price" value="<?= $product['price'] ?>">
+                        <input type="hidden" name="qty" value="1">
+                        <input type="hidden" name="buy_now" value="1">
+                        <input type="hidden" name="current_url" value="<?= htmlspecialchars($_SERVER['REQUEST_URI']) ?>">
+
+                        <button type="submit" class="btn-buy">ซื้อเลย</button>
+                    </form>
+
+                </div>
             </div>
-          </div>
         </a>
-      </div>
+    </div>
     <?php endwhile; ?>
-  </div>
+</div>
 
-  <!-- Pagination -->
-  <div class="pagination">
+<!-- Pagination -->
+<div class="pagination">
     <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-      <a href="?page=<?= $i ?>&category=<?= urlencode($category) ?>" class="<?= $page == $i ? 'active' : '' ?>">
-        <?= $i ?>
-      </a>
+        <a href="?page=<?= $i ?>&category=<?= urlencode($category) ?>" class="<?= $page == $i ? 'active' : '' ?>">
+            <?= $i ?>
+        </a>
     <?php endfor; ?>
-  </div>
+</div>
 
-  <!-- JavaScript -->
-  <script>
-    function addToCart(event, productId, productName, price) {
-      event.preventDefault();
+<!-- Checkout Section (Only show if Buy Now) -->
+<?php if ($buyNowProduct): ?>
+<div class="checkout-container" style="margin-top: 30px;">
+    <h2>สรุปการสั่งซื้อ</h2>
+    <p>สินค้า: <?= htmlspecialchars($buyNowProduct['p_name']) ?></p>
+    <p>จำนวน: <?= $buyNowProduct['qty'] ?></p>
+    <p>ราคาต่อชิ้น: <?= number_format($buyNowProduct['price'], 2) ?> บาท</p>
+    <p>รวมทั้งหมด: <strong><?= number_format($buyNowProduct['price'] * $buyNowProduct['qty'], 2) ?> บาท</strong></p>
 
-      fetch('product.php', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: `product_id=${productId}&product_name=${encodeURIComponent(productName)}&price=${price}&ajax=1`
-        })
-        .then(res => {
-          console.log("Raw response:", res);
-          return res.json(); // ถ้า response ไม่ใช่ JSON ที่ valid ตรงนี้จะ error
-        })
-        .then(data => {
-          if (data.success) {
-            Swal.fire({
-              icon: 'success',
-              title: 'เพิ่มสินค้าในตะกร้า',
-              text: `${productName} ถูกเพิ่มในตะกร้าแล้ว!`,
-              confirmButtonText: 'ตกลง'
-            }).then((result) => {
-              if (result.isConfirmed) {
-                window.location.reload();
-              }
-            });
-
-            const cartCount = document.getElementById("cart-count");
-            if (cartCount) {
-              cartCount.innerText = data.cart_count;
-            }
-
-          } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'เกิดข้อผิดพลาด',
-              text: 'ไม่สามารถเพิ่มสินค้าได้',
-              confirmButtonText: 'ตกลง'
-            });
-          }
-        })
-        .catch(() => {
-          // in this
-          Swal.fire({
-            icon: 'success',
-            title: 'เพิ่มสินค้าในตะกร้า',
-            text: `${productName} ถูกเพิ่มในตะกร้าแล้ว!`,
-            confirmButtonText: 'ตกลง'
-          }).then((result) => {
-            if (result.isConfirmed) {
-              window.location.reload();
-            }
-          });
-
-        });
-    }
-  </script>
+    <form action="payment.php" method="POST">
+        <input type="hidden" name="p_id" value="<?= $buyNowProduct['p_id'] ?>">
+        <input type="hidden" name="qty" value="<?= $buyNowProduct['qty'] ?>">
+        <input type="hidden" name="total_price" value="<?= $buyNowProduct['price'] * $buyNowProduct['qty'] ?>">
+        <button type="submit" class="btn-buy">ยืนยันการสั่งซื้อ</button>
+    </form>
+</div>
+<?php endif; ?>
 
 </body>
-
 </html>
