@@ -1,5 +1,5 @@
 <?php
-include('../dbconnect.php');
+include_once('../dbconnect.php');
 
 // ดึงรายการหมวดหมู่ทั้งหมด
 $category_sql = "SELECT * FROM category";

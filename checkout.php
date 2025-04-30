@@ -11,69 +11,69 @@ if (!isset($_SESSION['email'])) {
 
 // Check if Cart Checkout
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cart_p_ids'])) {
-    $cartProducts = [];
-    $total = 0;
-    $total_qty = 0;
-    
-    foreach ($_POST['cart_p_ids'] as $p_id) {
-        $p_id = intval($p_id);
-        $qty = intval($_POST['cart_qtys'][$p_id] ?? 1);
-        if ($qty <= 0) $qty = 1;
-        
-        $sql = "SELECT * FROM product WHERE p_id = $p_id";
-        $result = $conn->query($sql);
-        if ($result && $product = $result->fetch_assoc()) {
-            $cartProducts[] = [
-                'p_id' => $product['p_id'],
-                'p_name' => $product['p_name'],
-                'price' => $product['price'],
-                'qty' => $qty,
-                'image' => $product['image'] ?? 'default.jpg',
-                'code' => $product['code'] ?? '',
-            ];
-            $total += $product['price'] * $qty;
-            $total_qty += $qty;
-        }
-    }
-} else if (isset($_SESSION['buy_now'])) {
-    // Normal Buy Now flow
-    $buyNowItem = $_SESSION['buy_now'];
-    
-    $p_id = intval($buyNowItem['p_id']);
+  $cartProducts = [];
+  $total = 0;
+  $total_qty = 0;
+
+  foreach ($_POST['cart_p_ids'] as $p_id) {
+    $p_id = intval($p_id);
+    $qty = intval($_POST['cart_qtys'][$p_id] ?? 1);
+    if ($qty <= 0) $qty = 1;
+
     $sql = "SELECT * FROM product WHERE p_id = $p_id";
     $result = $conn->query($sql);
-    $product = $result->fetch_assoc();
-    
-    $cartProducts = [];
-    $total = 0;
-    $total_qty = 0;
-    
-    if ($product) {
-        $cartProducts[] = [
-            'p_id' => $product['p_id'],
-            'p_name' => $product['p_name'],
-            'price' => $product['price'],
-            'qty' => $buyNowItem['qty'],
-            'image' => $product['image'] ?? 'default.jpg',
-            'code' => $product['code'] ?? '',
-        ];
-        $total += $product['price'] * $buyNowItem['qty'];
-        $total_qty += $buyNowItem['qty'];
+    if ($result && $product = $result->fetch_assoc()) {
+      $cartProducts[] = [
+        'p_id' => $product['p_id'],
+        'p_name' => $product['p_name'],
+        'price' => $product['price'],
+        'qty' => $qty,
+        'image' => $product['image'] ?? 'default.jpg',
+        'code' => $product['code'] ?? '',
+      ];
+      $total += $product['price'] * $qty;
+      $total_qty += $qty;
     }
+  }
+} else if (isset($_SESSION['buy_now'])) {
+  // Normal Buy Now flow
+  $buyNowItem = $_SESSION['buy_now'];
+
+  $p_id = intval($buyNowItem['p_id']);
+  $sql = "SELECT * FROM product WHERE p_id = $p_id";
+  $result = $conn->query($sql);
+  $product = $result->fetch_assoc();
+
+  $cartProducts = [];
+  $total = 0;
+  $total_qty = 0;
+
+  if ($product) {
+    $cartProducts[] = [
+      'p_id' => $product['p_id'],
+      'p_name' => $product['p_name'],
+      'price' => $product['price'],
+      'qty' => $buyNowItem['qty'],
+      'image' => $product['image'] ?? 'default.jpg',
+      'code' => $product['code'] ?? '',
+    ];
+    $total += $product['price'] * $buyNowItem['qty'];
+    $total_qty += $buyNowItem['qty'];
+  }
 } else {
-    header('Location: product.php');
-    exit;
+  header('Location: product.php');
+  exit;
 }
 
 // Fetch user info if logged in
 $user = null;
 if (isset($_SESSION['email'])) {
-    $email = $_SESSION['email'];
-    $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $resultUser = $stmt->get_result();
-    $user = $resultUser->fetch_assoc();
+  $email = $_SESSION['email'];
+  $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+  $stmt->bind_param("s", $email);
+  $stmt->execute();
+  $resultUser = $stmt->get_result();
+  $user = $resultUser->fetch_assoc();
 }
 ?>
 
@@ -233,6 +233,7 @@ if (isset($_SESSION['email'])) {
     }
   });
 </script>
+
 <body>
 
   <form action="payment.php" method="post">
@@ -267,7 +268,7 @@ if (isset($_SESSION['email'])) {
               <td class="text-right"><?= $item['qty'] ?></td>
               <td class="text-right"><?= number_format($item['price'] * $item['qty'], 2) ?> บาท</td>
             </tr>
-            <?php endforeach; ?>
+          <?php endforeach; ?>
         </table>
         <div class="cart-summary">
           <p> จำนวนสินค้า: <strong><?php echo $total_qty; ?></strong> รายการ</p>
@@ -330,26 +331,26 @@ if (isset($_SESSION['email'])) {
 
 
 <?php if ($showLoginAlert): ?>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  Swal.fire({
-    icon: 'warning',
-    title: 'คุณยังไม่ได้ login',
-    text: 'กรุณาเข้าสู่ระบบเพื่อทำการสั่งซื้อ',
-    showCancelButton: true,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'เข้าสู่ระบบ',
-    cancelButtonText: 'สมัครสมาชิก',
-    allowOutsideClick: false
-  }).then((result) => {
-    if (result.isConfirmed) {
-      window.location.href = 'login.php';
-    } else {
-      window.location.href = 'register.php';
-    }
-  });
-});
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      Swal.fire({
+        icon: 'warning',
+        title: 'คุณยังไม่ได้ login',
+        text: 'กรุณาเข้าสู่ระบบเพื่อทำการสั่งซื้อ',
+        showCancelButton: true,
+        confirmButtonColor: ' #f48fb1',
+        cancelButtonColor: 'rgb(177, 175, 174)',
+        confirmButtonText: 'เข้าสู่ระบบ',
+        cancelButtonText: 'สมัครสมาชิก',
+        allowOutsideClick: false
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = 'login.php';
+        } else {
+          window.location.href = 'register.php';
+        }
+      });
+    });
+  </script>
 <?php endif; ?>

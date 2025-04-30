@@ -1,317 +1,193 @@
 <?php
-include('../dbconnect.php');
-// --- คำนวณข้อมูลต่าง ๆ ---
-$dateToday = date('Y-m-d');
-$monthNow = date('Y-m');
-$yearNow = date('Y');
-
-$todaySales = 0;
-$monthSales = 0;
-$yearSales = 0;
-$totalSales = 0;
-$todayOrders = 0;
-$totalOrders = 0;
-$totalStock = 0;
-
-// ยอดขายวันนี้
-$sql_today = "SELECT SUM(total_price) AS todaySales, COUNT(*) AS todayOrders FROM orders WHERE DATE(order_date) = '$dateToday'";
-$result_today = $conn->query($sql_today);
-if ($row = $result_today->fetch_assoc()) {
-  $todaySales = $row['todaySales'] ?: 0;
-  $todayOrders = $row['todayOrders'] ?: 0;
-}
-
-// ยอดขายเดือนนี้
-$sql_month = "SELECT SUM(total_price) AS monthSales FROM orders WHERE DATE_FORMAT(order_date, '%Y-%m') = '$monthNow'";
-$result_month = $conn->query($sql_month);
-if ($row = $result_month->fetch_assoc()) {
-  $monthSales = $row['monthSales'] ?: 0;
-}
-
-// ยอดขายปีนี้
-$sql_year = "SELECT SUM(total_price) AS yearSales FROM orders WHERE YEAR(order_date) = '$yearNow'";
-$result_year = $conn->query($sql_year);
-if ($row = $result_year->fetch_assoc()) {
-  $yearSales = $row['yearSales'] ?: 0;
-}
-
-// ยอดขายรวม
-$sql_total = "SELECT SUM(total_price) AS totalSales, COUNT(*) AS totalOrders FROM orders";
-$result_total = $conn->query($sql_total);
-if ($row = $result_total->fetch_assoc()) {
-  $totalSales = $row['totalSales'] ?: 0;
-  $totalOrders = $row['totalOrders'] ?: 0;
-}
-
-// สินค้าคงเหลือ
-$sql_stock = "SELECT SUM(quantity) AS totalStock FROM product";
-$result_stock = $conn->query($sql_stock);
-if ($row = $result_stock->fetch_assoc()) {
-  $totalStock = $row['totalStock'] ?: 0;
-}
-
-// สินค้าขายดี
-$sql_bestsellers = "
-SELECT p.p_name, SUM(od.qty) AS total_qty
-FROM order_detail od
-JOIN product p ON od.p_id = p.p_id
-GROUP BY od.p_id
-ORDER BY total_qty DESC
-LIMIT 5
-";
-$result_bestsellers = $conn->query($sql_bestsellers);
+include_once('../dbconnect.php');
+include('admin.php');
 ?>
-
 <!DOCTYPE html>
 <html lang="th">
+
 
 <head>
   <meta charset="UTF-8">
   <title>แดชบอร์ด</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Kanit&display=swap');
 
     body {
-      margin: 0;
       font-family: 'Kanit', sans-serif;
-      background: #fff7f9;
+      background-color: #fff7f9;
+      margin: 0;
+      padding: 20px;
     }
 
-    .navbar {
-      background-color: #d7ccc8;
-      color: #5d4037;
-      padding: 15px 30px;
+    .dashboard-container {
+      max-width: 100%;
+      margin: auto;
+    }
+
+    .stats {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-
-    .navbar .title {
-      font-size: 20px;
-    }
-
-    .logout-btn {
-      background-color: #ef9a9a;
-      border: none;
-      padding: 8px 16px;
-      color: white;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .logout-btn:hover {
-      background-color: #e57373;
-    }
-
-    .sidebar {
-      width: 220px;
-      background: #fff0f5;
-      height: 100vh;
-      position: fixed;
-      overflow-y: auto;
-      padding-top: 20px;
-      border-right: 1px solid #ddd;
-    }
-
-    .sidebar ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    .sidebar li {
-      padding: 12px 20px;
-      color: #8d5544;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .sidebar li:hover,
-    .sidebar li.active {
-      background-color: #ffc0cb;
-      color: #fff;
-    }
-
-    .sidebar li i {
-      margin-right: 10px;
-    }
-
-    .submenu {
-      display: none;
-      background-color: #ffe4e1;
-      padding-left: 20px;
-    }
-
-    .submenu a {
-      display: block;
-      padding: 8px 0;
-      color: #8d5544;
-      text-decoration: none;
-    }
-
-    .submenu a:hover {
-      color: #d13c3c;
-    }
-
-    .content {
-      margin-left: 240px;
-      padding: 40px 20px;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
     }
 
     .card {
-      background-color: #ffffff;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-      border: 1px solid #f8bbd0;
-      max-width: 1000px;
-      margin: auto;
+      background-color: #fff;
+      border: 1px solid #f3d1c0;
+      padding: 20px;
+      border-radius: 12px;
       text-align: center;
+      width: 250px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
 
-    .card h1 {
+    .card h3 {
       margin-bottom: 10px;
       color: #6d4c41;
     }
 
-    .card p {
-      color: #795548;
+    .filter-section {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+
+    select,
+    button {
+      font-family: 'Kanit', sans-serif;
+      padding: 8px 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background-color: #fff;
+      cursor: pointer;
+    }
+
+    select:focus,
+    button:focus {
+      outline: none;
+      border-color: #DAA994;
+    }
+
+    canvas {
+      background-color: #ffffff;
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     }
   </style>
 </head>
 
 <body>
-  <!-- Navbar -->
-  <div class="navbar">
-    <div class="title"><i class="fas fa-user-shield"></i> แอดมิน</div>
-    <button class="logout-btn" onclick="logout()">ออกจากระบบ</button>
-  </div>
-
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <ul>
-      <li onclick="toggleMenu(this)">
-        <span><i class="fas fa-chart-line"></i> แดชบอร์ด</span>
-        <i class="fas fa-chevron-down"></i>
-      </li>
-      <ul class="submenu">
-        <li><a href="#">วิเคราะห์ข้อมูล</a></li>
-      </ul>
-
-      <li onclick="toggleMenu(this)">
-        <span><i class="fas fa-bell"></i> คำสั่งซื้อ</span>
-        <i class="fas fa-chevron-down"></i>
-      </li>
-      <ul class="submenu">
-        <li><a href="#">รอดำเนินการ</a></li>
-        <li><a href="#">จัดส่งแล้ว</a></li>
-      </ul>
-
-      <li onclick="toggleMenu(this)">
-        <span><i class="fas fa-store"></i> สินค้าทั้งหมด</span>
-        <i class="fas fa-chevron-down"></i>
-      </li>
-      <ul class="submenu">
-        <li><a href="manage_product.php">จัดการสินค้า</a></li>
-        <li><a href="add_product.php">เพิ่มสินค้า</a></li>
-      </ul>
-
-      <li onclick="toggleMenu(this)">
-        <span><i class="fas fa-users"></i> ผู้ใช้งาน</span>
-        <i class="fas fa-chevron-down"></i>
-      </li>
-      <ul class="submenu">
-        <li><a href="#">รายชื่อผู้ใช้</a></li>
-        <li><a href="#">สิทธิ์การเข้าถึง</a></li>
-      </ul>
-    </ul>
-  </div>
-
-  <!-- Content Dashboard -->
-  <div class="content">
-    <h1 style="text-align: center; margin-bottom: 30px;">แดชบอร์ด</h1>
-
-    <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
-
+  <div class="dashboard-container">
+    <div class="stats">
       <div class="card">
-        <h2>ยอดจำหน่ายวันนี้</h2>
-        <p><?= number_format($todaySales, 2) ?> บาท</p>
+        <h3>ยอดจำหน่ายรวม</h3>
+        <p id="totalSales">0 บาท</p>
       </div>
-
       <div class="card">
-        <h2>ยอดจำหน่ายเดือนนี้</h2>
-        <p><?= number_format($monthSales, 2) ?> บาท</p>
+        <h3>สินค้าคงเหลือ</h3>
+        <p id="stock">0 ชิ้น</p>
       </div>
-
       <div class="card">
-        <h2>ยอดจำหน่ายปีนี้</h2>
-        <p><?= number_format($yearSales, 2) ?> บาท</p>
+        <h3>คำสั่งซื้อวันนี้</h3>
+        <p id="todayOrders">0 รายการ</p>
       </div>
-
       <div class="card">
-        <h2>ยอดจำหน่ายรวม</h2>
-        <p><?= number_format($totalSales, 2) ?> บาท</p>
+        <h3>ยอดคำสั่งซื้อรวม</h3>
+        <p id="totalOrders">0 รายการ</p>
       </div>
-
-      <div class="card">
-        <h2>สินค้าคงเหลือ</h2>
-        <p><?= number_format($totalStock) ?> ชิ้น</p>
-      </div>
-
-      <div class="card">
-        <h2>คำสั่งซื้อวันนี้</h2>
-        <p><?= number_format($todayOrders) ?> รายการ</p>
-      </div>
-
-      <div class="card">
-        <h2>ยอดคำสั่งซื้อรวม</h2>
-        <p><?= number_format($totalOrders) ?> รายการ</p>
-      </div>
-
-      <div class="card" style="flex: 1 1 100%;">
-        <h2>สินค้าขายดี</h2>
-        <table style="width: 100%; margin-top: 20px; border-collapse: collapse;">
-          <thead>
-            <tr style="background-color: #fce4ec;">
-              <th style="padding: 10px; border: 1px solid #f8bbd0;">สินค้า</th>
-              <th style="padding: 10px; border: 1px solid #f8bbd0;">จำนวนที่ขายได้</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php while ($row = $result_bestsellers->fetch_assoc()) { ?>
-              <tr>
-                <td style="padding: 10px; border: 1px solid #f8bbd0;"><?= htmlspecialchars($row['p_name']) ?></td>
-                <td style="padding: 10px; border: 1px solid #f8bbd0;"><?= number_format($row['total_qty']) ?></td>
-              </tr>
-            <?php } ?>
-          </tbody>
-        </table>
-      </div>
-
     </div>
+
+    <div class="filter-section">
+      <div>
+        <label>ช่วงเวลา:
+          <select id="timeRange" onchange="updateChart()">
+            <option value="day">วันนี้</option>
+            <option value="week">สัปดาห์นี้</option>
+            <option value="year">ปีนี้</option>
+          </select>
+        </label>
+      </div>
+      <div>
+        <label>หมวดหมู่:
+          <select id="category" onchange="updateChart()">
+            <option value="ทั้งหมด">ทั้งหมด</option>
+            <option value="เค้กมินิมอล">เค้กมินิมอล</option>
+            <option value="เค้กวินเทจ">เค้กวินเทจ</option>
+            <option value="คัพเค้ก">คัพเค้ก</option>
+            <option value="เค้กมะพร้าว">เค้กมะพร้าว</option>
+            <option value="บาน้อฟฟี่เค้ก">บาน้อฟฟี่เค้ก</option>
+
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <canvas id="salesChart" height="100"></canvas>
   </div>
 
   <script>
-    function toggleMenu(el) {
-      const next = el.nextElementSibling;
-      if (next && next.classList.contains('submenu')) {
-        next.style.display = next.style.display === 'block' ? 'none' : 'block';
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    let salesChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัส', 'ศุกร์', 'เสาร์', 'อาทิตย์'],
+        datasets: [{
+          label: 'ยอดขาย (บาท)',
+          data: [1200, 1900, 3000, 2500, 2200, 1300, 1500],
+          backgroundColor: '#DAA994'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top'
+          },
+          title: {
+            display: true,
+            text: 'สถิติยอดขายตามช่วงเวลา'
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
       }
+    });
+
+    function updateChart() {
+      const range = document.getElementById('timeRange').value;
+      const category = document.getElementById('category').value;
+
+      // จำลองการเปลี่ยนข้อมูลตามช่วงเวลา/หมวดหมู่
+      const dataSets = {
+        day: [3000],
+        week: [1000, 2000, 1500, 2200, 1800, 1900, 2100],
+        year: [10000, 11000, 9000, 8500, 12000, 13000, 11000, 10000, 9000, 8500, 9500, 11500]
+      };
+
+      const labels = {
+        day: ['วันนี้'],
+        week: ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัส', 'ศุกร์', 'เสาร์', 'อาทิตย์'],
+        year: ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']
+      };
+
+      salesChart.data.labels = labels[range];
+      salesChart.data.datasets[0].data = dataSets[range];
+      salesChart.update();
     }
 
-    function logout() {
-      if (confirm('คุณแน่ใจว่าต้องการออกจากระบบ?')) {
-        window.location.href = '../login.php';
-      }
-    }
+    // ใส่ข้อมูลจำลองกล่องแสดงยอดรวม
+    document.getElementById('totalSales').textContent = '52,500 บาท';
+    document.getElementById('stock').textContent = '2,342 ชิ้น';
+    document.getElementById('todayOrders').textContent = '27 รายการ';
+    document.getElementById('totalOrders').textContent = '1,280 รายการ';
   </script>
-
 </body>
 
 </html>

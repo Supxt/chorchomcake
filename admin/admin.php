@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../dbconnect.php');
+include_once('../dbconnect.php');
 
 // Fetch all products
 /*
