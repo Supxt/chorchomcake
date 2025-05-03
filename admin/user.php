@@ -7,23 +7,25 @@ if (isset($_GET['delete'])) {
   $stmt = $conn->prepare("DELETE FROM users WHERE user_id = ?");
   $stmt->bind_param("i", $user_id);
   $stmt->execute();
-  echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>";
-  echo "<script>
-        Swal.fire({
-            title: 'ลบผู้ใช้สำเร็จ',
-            icon: 'success',
-            confirmButtonText: 'ตกลง'
-        }).then(() => {
-            window.location.href = 'user.php';
-        });
-    </script>";
+
+  // ✅ Redirect กลับมาหน้าหลักพร้อม query string
+  header('Location: user.php?deleted=1');
   exit;
 }
 
-// ดึงข้อมูลผู้ใช้
-$result = $conn->query("SELECT * FROM users ORDER BY user_id DESC");
-include('admin.php');
+// ---- Pagination ----
+$limit = 10; // จำนวนรายการต่อหน้า
+$current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($current_page - 1) * $limit;
 
+// นับจำนวนผู้ใช้ทั้งหมด
+$total_users = $conn->query("SELECT COUNT(*) as total FROM users")->fetch_assoc()['total'];
+$total_pages = ceil($total_users / $limit);
+
+// ดึงข้อมูลผู้ใช้ตามหน้า
+$result = $conn->query("SELECT * FROM users ORDER BY user_id DESC LIMIT $limit OFFSET $offset");
+
+include('admin.php');
 ?>
 
 <!DOCTYPE html>
@@ -59,8 +61,8 @@ include('admin.php');
     }
 
     .content {
-      margin: 20px;
       padding: 20px;
+      margin-left: 220px;
     }
 
     table {
@@ -91,31 +93,49 @@ include('admin.php');
       font-size: 14px;
     }
 
-    .edit-btn {
-      background-color: #4db6ac;
+    .pagination {
+      margin-top: 20px;
+      text-align: center;
     }
 
-    .edit-btn:hover {
-      background-color: #009688;
+    .pagination a {
+      display: inline-block;
+      padding: 8px 12px;
+      margin: 0 4px;
+      background-color: #f8bbd0;
+      color: #333;
+      border-radius: 5px;
+      text-decoration: none;
     }
 
-    .delete-btn {
-      background-color: #ef5350;
+    .pagination a:hover,
+    .pagination a[style*="font-weight:bold"] {
+      background-color: #e57373;
+      color: white;
     }
 
-    .delete-btn:hover {
-      background-color: #d32f2f;
+    .action-btn {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 5px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .content th.action-col,
+    .content td.action-col {
+      text-align: center;
     }
   </style>
 </head>
 
 <body>
-
-  <div class="navbar">
-    <div class="title"><i class="fas fa-users"></i> จัดการผู้ใช้</div>
-    <button class="logout-btn" onclick="logout()">ออกจากระบบ</button>
-  </div>
-
   <div class="content">
     <h2>รายชื่อผู้ใช้งาน</h2>
     <table>
@@ -124,8 +144,7 @@ include('admin.php');
           <th>ชื่อ-นามสกุล</th>
           <th>เบอร์โทร</th>
           <th>อีเมล</th>
-          <th>วันที่สมัคร</th>
-          <th>จัดการ</th>
+          <th class="action-col">จัดการ</th>
         </tr>
       </thead>
       <tbody>
@@ -134,15 +153,36 @@ include('admin.php');
             <td><?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?></td>
             <td><?= htmlspecialchars($user['tel']) ?></td>
             <td><?= htmlspecialchars($user['email']) ?></td>
-            <td><?= date('d/m/Y', strtotime($user['created_at'])) ?></td>
-            <td>
-              <a href="edit_user.php?id=<?= $user['user_id'] ?>" class="action-btn edit-btn">แก้ไข</a>
-              <button class="action-btn delete-btn" onclick="confirmDelete(<?= $user['user_id'] ?>)">ลบ</button>
+            <td class="action-col">
+              <!-- ปุ่มแก้ไข -->
+              <a href="edit_user.php?id=<?= $user['user_id'] ?>" class="action-btn" style="background-color:#ef9a9a;">
+                <i class="fas fa-edit"></i> แก้ไข
+              </a>
+
+              <!-- ปุ่มลบ -->
+              <button onclick="confirmDelete(<?= $user['user_id'] ?>)" class="action-btn" style="background-color:#f44336;">
+                <i class="fas fa-trash"></i> ลบ
+              </button>
             </td>
           </tr>
         <?php endwhile; ?>
       </tbody>
     </table>
+    <div class="pagination">
+      <?php if ($current_page > 1): ?>
+        <a href="?page=<?= $current_page - 1 ?>">&laquo; ก่อนหน้า</a>
+      <?php endif; ?>
+
+      <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+        <a href="?page=<?= $i ?>" <?= $i == $current_page ? 'style="font-weight:bold; text-decoration:underline;"' : '' ?>>
+          <?= $i ?>
+        </a>
+      <?php endfor; ?>
+
+      <?php if ($current_page < $total_pages): ?>
+        <a href="?page=<?= $current_page + 1 ?>">ถัดไป &raquo;</a>
+      <?php endif; ?>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -163,6 +203,23 @@ include('admin.php');
         }
       });
     }
+
+    // ✅ ตรวจสอบการลบสำเร็จ
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('deleted') === '1') {
+        Swal.fire({
+          title: 'ลบผู้ใช้สำเร็จ',
+          icon: 'success',
+          confirmButtonText: 'ตกลง'
+        }).then(() => {
+          // ล้าง query string หลังแสดงเสร็จเพื่อไม่ให้โชว์ซ้ำตอนรีเฟรช
+          const url = new URL(window.location);
+          url.searchParams.delete('deleted');
+          window.history.replaceState({}, document.title, url);
+        });
+      }
+    });
 
     function logout() {
       if (confirm('คุณแน่ใจว่าต้องการออกจากระบบ?')) {
