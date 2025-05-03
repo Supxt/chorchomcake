@@ -31,7 +31,7 @@ if ($current_page < 1) $current_page = 1;
 $offset = ($current_page - 1) * $items_per_page;
 
 // ดึงจำนวนสินค้าทั้งหมด
-$count_sql = "SELECT COUNT(*) as total FROM product" . ($selected_category ? " WHERE category_id = ?" : "");
+$count_sql = "SELECT COUNT(*) as total FROM orders" . ($selected_category ? " WHERE category_id = ?" : "");
 $count_stmt = $conn->prepare($count_sql);
 if ($selected_category) {
   $count_stmt->bind_param("i", $selected_category);
@@ -179,42 +179,60 @@ include('admin.php');
     </form>
 
     <!-- ตารางสินค้า -->
-    <table class="product-list">
+
+    <!-- <h1>Order Management</h1> -->
+
+    <?php if (count($orders) > 0): ?>
+    <table>
       <thead>
         <tr>
-          <th class="id-col">รหัสสินค้า</th>
-          <th class="name-col">ชื่อสินค้า</th>
-          <th class="price-col">ราคา (บาท)</th>
-          <th>หมวดหมู่</th>
-          <th>รูปภาพ</th>
-          <th class="action-col">การจัดการ</th>
+          <th>#</th>
+          <th>Full Name</th>
+          <th>Email</th>
+          <th>Order No</th>
+          <th>Address</th>
+          <th>Tel</th>
+          <th>Receive Date</th>
+          <th>Total Qty</th>
+          <th>Total Price</th>
+          <th>VAT</th>
+          <th>Grand Total</th>
+          <th>Payment Slip</th>
+          <th>Payment Method</th>
+          <th>Status</th>
         </tr>
       </thead>
       <tbody>
-        <?php while ($row = $result->fetch_assoc()): ?>
+        <?php foreach ($orders as $index => $order): ?>
         <tr>
-          <td class="id-col"><?= $row['p_id'] ?></td>
-          <td class="name-col"><?= htmlspecialchars($row['p_name']) ?></td>
-          <td class="price-col"><?= number_format($row['price'], 2) ?> </td>
-          <td><?= isset($row['category_name']) ? htmlspecialchars($row['category_name']) : '-' ?></td>
-          <td>
-            <?php if (!empty($row['image'])): ?>
-            <img src="../image/<?= htmlspecialchars($row['image']) ?>" alt="รูปสินค้า">
-            <?php else: ?>
-            <img src="../uploads/default.jpg" alt="ไม่มีรูป" />
-            <?php endif; ?>
-          </td>
-          <td class="action-col">
-            <a href="edit_product.php?p_id=<?= $row['p_id'] ?>"><button>แก้ไข</button></a>
-            <form action="delete_product.php" method="POST" style="display:inline;">
-              <input type="hidden" name="p_id" value="<?= $row['p_id'] ?>">
-              <button type="submit" onclick="return confirm('คุณแน่ใจว่าต้องการลบสินค้านี้?')">ลบ</button>
-            </form>
-          </td>
+          <td><?= $index + 1 ?></td>
+          <td><?= htmlspecialchars($order['full_name']) ?></td>
+          <td><?= htmlspecialchars($order['user_email']) ?></td>
+          <td><?= $order['order_no'] ?></td>
+          <td><?= htmlspecialchars($order['address']) ?></td>
+          <td><?= $order['tel'] ?></td>
+          <td><?= $order['receive_date'] ?></td>
+          <td><?= $order['total_qty'] ?></td>
+          <td><?= number_format($order['total_price'], 2) ?></td>
+          <td><?= number_format($order['vat'], 2) ?></td>
+          <td><?= number_format($order['grand_total'], 2) ?></td>
+          <td><a href="uploads/<?= $order['payment_slip'] ?>" target="_blank"><?= $order['payment_slip'] ?></a></td>
+          <td><?= $order['payment_method'] ?></td>
+          <td><?= $order['order_status'] ?></td>
         </tr>
-        <?php endwhile; ?>
+        <?php endforeach; ?>
       </tbody>
     </table>
+    <?php else: ?>
+    <p>No orders found.</p>
+    <?php endif; ?>
+
+    <script>
+    const ordersData = <?= json_encode($orders, JSON_PRETTY_PRINT) ?>;
+    console.log("Orders:", ordersData);
+    </script>
+
+
 
     <!-- Pagination -->
     <div class="pagination">
