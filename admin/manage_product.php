@@ -1,10 +1,6 @@
 <?php
 include_once('../dbconnect.php');
 
-// echo '<pre>';
-// print_r($orders);
-// echo '</pre>';
-
 // ดึงรายการหมวดหมู่ทั้งหมด
 $category_sql = "SELECT * FROM category";
 $category_result = $conn->query($category_sql);
@@ -36,6 +32,7 @@ $sql = "
   SELECT p.*, c.category_name 
   FROM product p 
   LEFT JOIN category c ON p.category_id = c.category_id
+  ORDER BY p.created_at DESC
 ";
 
 if ($selected_category) {

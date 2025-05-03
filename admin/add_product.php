@@ -1,5 +1,6 @@
 <?php
 include('../dbconnect.php');
+include('admin.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $name = $_POST['p_name'];
@@ -12,18 +13,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if ($_FILES['image']['name']) {
     $image_name = time() . '_' . basename($_FILES['image']['name']);
     $target = '../image/' . $image_name;
-
-
     if (move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
       $image = $image_name;
     }
   }
 
+  // Get next auto-increment ID for product
+  $res = $conn->query("SELECT AUTO_INCREMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'product'");
+  $nextId = $res->fetch_assoc()['AUTO_INCREMENT'] ?? 1;
+
+  // Generate product code e.g. CH2-001
+  $code = 'CH' . $category_id . str_pad($nextId, 3, '0', STR_PAD_LEFT);
+
   $stmt = $conn->prepare("INSERT INTO product (p_name, code, price, description, quantity, image, category_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
   if (!$stmt) {
     die("Prepare failed: " . $conn->error);
   }
-
 
   $stmt->bind_param("ssdsisi", $name, $code, $price, $description, $quantity, $image, $category_id);
 
@@ -32,10 +37,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo "<script>
       Swal.fire({
         title: 'เพิ่มสินค้าเรียบร้อยแล้ว!',
+        text: 'รหัสสินค้า: $code',
         icon: 'success',
-        confirmButtonText: 'สำเร็จ'
+        confirmButtonText: 'ตกลง'
       }).then(() => {
-        window.location.href = 'admin.php';
+        window.location.href = 'manage_product.php';
       });
     </script>";
     exit;
@@ -45,10 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $cat_result = $conn->query("SELECT * FROM category");
-
-include('admin.php');
-
 ?>
+
 
 <!DOCTYPE html>
 <html lang="th">
@@ -163,38 +167,41 @@ include('admin.php');
     <div class="form-container">
       <h2>เพิ่มสินค้าใหม่</h2>
       <form method="POST" enctype="multipart/form-data">
-        <div class="form-group">
-          <label>ชื่อสินค้า</label>
-          <input type="text" name="p_name" required>
-        </div>
-        <div class="form-group">
-          <label>จำนวนสินค้า</label>
-          <input type="number" name="quantity" required>
-        </div>
-        <div class="form-group">
-          <label>ราคาสินค้า</label>
-          <input type="number" name="price" step="0.01" required>
-        </div>
-        <div class="form-group">
-          <label>รายละเอียดสินค้า</label>
-          <textarea name="description" rows="4" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: 'Kanit', sans-serif;"></textarea>
+  <div class="form-group">
+    <label>ชื่อสินค้า</label>
+    <input type="text" name="p_name" required>
+  </div>
+  <div class="form-group">
+    <label>จำนวนสินค้า</label>
+    <input type="number" name="quantity" required>
+  </div>
+  <div class="form-group">
+    <label>ราคาสินค้า</label>
+    <input type="number" name="price" step="0.01" required>
+  </div>
+  <div class="form-group">
+    <label>รายละเอียดสินค้า</label>
+    <textarea name="description" required></textarea>
+  </div>
+  <div class="form-group">
+    <label>หมวดหมู่</label>
+    <select name="category_id" required>
+      <option value="">-- เลือกหมวดหมู่ --</option>
+      <?php while ($cat = $cat_result->fetch_assoc()): ?>
+        <option value="<?= $cat['category_id'] ?>"><?= $cat['category_name'] ?></option>
+      <?php endwhile; ?>
+    </select>
+  </div>
+  <div class="form-group">
+    <label>รูปภาพ</label>
+    <input type="file" name="image" accept="image/*">
+  </div>
+  <div class="form-group">
+    <button type="submit">เพิ่มสินค้า</button>
+  </div>
+</form>
 
-          <label>หมวดหมู่</label>
-          <select name="category_id" required>
-            <option value="">-- เลือกหมวดหมู่ --</option>
-            <?php while ($cat = $cat_result->fetch_assoc()): ?>
-              <option value="<?= $cat['category_id'] ?>"><?= $cat['category_name'] ?></option>
-            <?php endwhile; ?>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>รูปภาพ</label>
-          <input type="file" name="image" accept="image/*">
-        </div>
-        <div class="form-group">
-          <button type="submit">เพิ่มสินค้า</button>
-        </div>
-      </form>
+
     </div>
   </div>
 
