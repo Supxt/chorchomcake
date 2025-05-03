@@ -44,6 +44,18 @@ if ($selected_category) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 $sql .= " LIMIT $items_per_page OFFSET $offset";
 
 $result = $conn->query($sql);
