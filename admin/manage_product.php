@@ -40,6 +40,11 @@ $sql = "
 
 
 
+
+
+
+
+
 if ($selected_category) {
   $sql .= " WHERE p.category_id = " . (int)$selected_category;
 }
