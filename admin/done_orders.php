@@ -2,7 +2,7 @@
 include_once('../dbconnect.php');
 
 // Filter status
-$selected_status = isset($_GET['order_status']) && $_GET['order_status'] !== '' ? $_GET['order_status'] : 'Completed';
+$selected_status = isset($_GET['order_status']) && $_GET['order_status'] !== '' ? $_GET['order_status'] : 'สำเร็จ';
 
 // Pagination setup
 $items_per_page = 10;
@@ -116,24 +116,9 @@ include('admin.php');
 
 <div class="content">
   <div class="card">
-    <h1>คำสั่งซื้อที่จัดส่งแล้วทั้งหมด</h1>
+    <h1>คำสั่งซื้อที่สำเร็จทั้งหมด</h1>
     <p>คุณสามารถจัดการคำสั่งซื้อจากที่นี่</p>
 
-    <!-- Filter form -->
-    <form method="GET" class="filter-form">
-      <label for="order_status">เลือกสถานะ:</label>
-      <select name="order_status" id="order_status">
-        <?php
-        $statusOptions = ['Pending', 'Paid', 'Shipped', 'Cancelled', 'Completed'];
-        foreach ($statusOptions as $status):
-        ?>
-        <option value="<?= $status ?>" <?= $selected_status === $status ? 'selected' : '' ?>>
-          <?= $status ?>
-        </option>
-        <?php endforeach; ?>
-      </select>
-      <button type="submit">กรอง</button>
-    </form>
 
     <!-- Order table -->
     <table class="product-list">
