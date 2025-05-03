@@ -3,43 +3,30 @@ session_start();
 include('dbconnect.php');
 include('./components/navbar.php');
 
-// Initialize Buy Now data
-$buyNowProduct = null;
-
-// Handle Add-to-Cart
+// Handle Buy Now or Add to Cart
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['p_id'], $_POST['p_name'], $_POST['price'])) {
-  if (isset($_POST['buy_now']) && $_POST['buy_now'] == '1') {
-    // Check if user is logged in
-    if (!isset($_SESSION['email'])) {
-        // Not logged in → Save product temporarily
-        $_SESSION['pending_buy_now'] = [
-            'p_id' => intval($_POST['p_id']),
-            'p_name' => trim($_POST['p_name']),
-            'price' => floatval($_POST['price']),
-            'qty' => intval($_POST['qty'] ?? 1),
+    $p_id = intval($_POST['p_id']);
+    $p_name = trim($_POST['p_name']);
+    $price = floatval($_POST['price']);
+    $qty = max(1, intval($_POST['qty'] ?? 1));
+    $code = $_POST['code'] ?? '';
+
+    if (isset($_POST['buy_now']) && $_POST['buy_now'] == '1') {
+        // Buy Now case
+        $_SESSION['buy_now'] = [
+            'p_id' => $p_id,
+            'p_name' => $p_name,
+            'price' => $price,
+            'qty' => $qty,
+            'code' => $code,
         ];
-        // Redirect to login first
+
+        // Redirect to checkout
         header('Location: checkout.php');
         exit;
-    }
-
-    // Already logged in → Normal Buy Now
-    $_SESSION['buy_now'] = [
-        'p_id' => intval($_POST['p_id']),
-        'p_name' => trim($_POST['p_name']),
-        'price' => floatval($_POST['price']),
-        'qty' => intval($_POST['qty'] ?? 1),
-    ];
-    header('Location: checkout.php');
-    exit;
-}
-    else {
-        // Normal Add to Cart
-        $p_id = intval($_POST['p_id']);
-        $p_name = trim($_POST['p_name']);
-        $price = floatval($_POST['price']);
-        $qty = intval($_POST['qty'] ?? 1);
-
+        echo "<script>console.log('Buy Now Session:', " . json_encode($_SESSION['buy_now']) . ");</script>";
+    } else {
+        // Add to Cart case
         $sql = "SELECT * FROM product WHERE p_id = $p_id";
         $result = $conn->query($sql);
 
@@ -66,24 +53,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['p_id'], $_POST['p_nam
             $_SESSION['error_message'] = 'ไม่พบข้อมูลสินค้า!';
         }
 
+        // Redirect back to product page
         $redirect_url = $_POST['current_url'] ?? 'product.php';
         header("Location: $redirect_url");
         exit;
+        echo "<script>console.log('Cart Session:', " . json_encode($_SESSION['cart']) . ");</script>";
     }
 }
 
-// Product Listing
+// ====== Product Listing Logic ======
 $category = $_GET['category'] ?? 'all';
 $limit = 6;
-$page = intval($_GET['page'] ?? 1);
+$page = max(1, intval($_GET['page'] ?? 1));
 $start = ($page - 1) * $limit;
 
+// Get product list
 if ($category === 'all') {
     $sql_product = "SELECT * FROM product LIMIT $start, $limit";
     $total_sql = "SELECT COUNT(*) as total FROM product";
 } else {
     $category_safe = $conn->real_escape_string($category);
-    $sql_product = "SELECT * FROM product p
+    $sql_product = "SELECT p.* FROM product p
                     LEFT JOIN category c ON p.category_id = c.category_id
                     WHERE c.category_name = '$category_safe'
                     LIMIT $start, $limit";
@@ -97,9 +87,11 @@ $total_result = $conn->query($total_sql);
 $total_products = $total_result->fetch_assoc()['total'];
 $total_pages = ceil($total_products / $limit);
 
+// Get all categories
 $sql_category = "SELECT * FROM category";
 $result_category = $conn->query($sql_category);
 ?>
+
 
 <!DOCTYPE html>
 <html lang="th">
@@ -167,6 +159,7 @@ if (isset($_SESSION['success_message']) || isset($_SESSION['error_message'])):
                     <form action="product.php" method="POST" style="display:inline-block;">
                         <input type="hidden" name="p_id" value="<?= $product['p_id'] ?>">
                         <input type="hidden" name="p_name" value="<?= htmlspecialchars($product['p_name']) ?>">
+                        <input type="hidden" name="code" value="<?= htmlspecialchars($product['code']) ?>">
                         <input type="hidden" name="price" value="<?= $product['price'] ?>">
                         <input type="hidden" name="qty" value="1">
                         <input type="hidden" name="current_url" value="<?= htmlspecialchars($_SERVER['REQUEST_URI']) ?>">
@@ -177,6 +170,7 @@ if (isset($_SESSION['success_message']) || isset($_SESSION['error_message'])):
                     <form action="product.php" method="POST" class="form-button" style="display:inline-block;">
                         <input type="hidden" name="p_id" value="<?= $product['p_id'] ?>">
                         <input type="hidden" name="p_name" value="<?= htmlspecialchars($product['p_name']) ?>">
+                        <input type="hidden" name="code" value="<?= htmlspecialchars($product['code']) ?>">
                         <input type="hidden" name="price" value="<?= $product['price'] ?>">
                         <input type="hidden" name="qty" value="1">
                         <input type="hidden" name="buy_now" value="1">
