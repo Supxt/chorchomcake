@@ -1,28 +1,8 @@
 <?php
 include_once('../dbconnect.php');
 
-$orders_sql = "SELECT * FROM `orders`";
-$orders_result = $conn->query($orders_sql);
-
-$orders = [];
-
-if ($orders_result && $orders_result->num_rows > 0) {
-    while ($row = $orders_result->fetch_assoc()) {
-        $orders[] = $row; // Push each row into the array
-    }
-
-    // Log entire array to browser console
-    echo "<script>console.log(" . json_encode($orders) . ");</script>";
-} else {
-    echo "No orders found or query failed.";
-}
-// ดึงรายการหมวดหมู่ทั้งหมด
-$category_sql = "SELECT * FROM category";
-$category_result = $conn->query($category_sql);
-
-// ตรวจสอบหมวดหมู่ที่เลือก
-$selected_category = isset($_GET['category_id']) && $_GET['category_id'] !== '' ? (int)$_GET['category_id'] : null;
-
+// Filter status
+$selected_status = isset($_GET['order_status']) && $_GET['order_status'] !== '' ? $_GET['order_status'] : 'Pending';
 
 // Pagination setup
 $items_per_page = 10;
@@ -30,32 +10,21 @@ $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($current_page < 1) $current_page = 1;
 $offset = ($current_page - 1) * $items_per_page;
 
-// ดึงจำนวนสินค้าทั้งหมด
-$count_sql = "SELECT COUNT(*) as total FROM orders" . ($selected_category ? " WHERE category_id = ?" : "");
+// Count total filtered orders
+$count_sql = "SELECT COUNT(*) as total FROM orders WHERE order_status = ?";
 $count_stmt = $conn->prepare($count_sql);
-if ($selected_category) {
-  $count_stmt->bind_param("i", $selected_category);
-}
+$count_stmt->bind_param("s", $selected_status);
 $count_stmt->execute();
 $count_result = $count_stmt->get_result();
 $total_items = $count_result->fetch_assoc()['total'];
 $total_pages = ceil($total_items / $items_per_page);
 
-// ดึงข้อมูลสินค้าพร้อม LEFT JOIN กับ category
-// เขียน SQL ด้วยการฝังค่า limit และ offset ตรง ๆ
-$sql = "
-  SELECT p.*, c.category_name 
-  FROM product p 
-  LEFT JOIN category c ON p.category_id = c.category_id
-";
-
-if ($selected_category) {
-  $sql .= " WHERE p.category_id = " . (int)$selected_category;
-}
-
-$sql .= " LIMIT $items_per_page OFFSET $offset";
-
-$result = $conn->query($sql);
+// Fetch paginated orders
+$sql = "SELECT * FROM orders WHERE order_status = ? ORDER BY created_at DESC LIMIT $items_per_page OFFSET $offset";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("s", $selected_status);
+$stmt->execute();
+$result = $stmt->get_result();
 
 include('admin.php');
 ?>
@@ -77,21 +46,14 @@ include('admin.php');
   background-color: #f8bbd0;
 }
 
-.product-list th.id-col,
-.product-list td.id-col,
-.product-list th.name-col,
-.product-list td.name-col {
-  text-align: left;
-}
-
-.product-list th.price-col,
-.product-list td.price-col {
-  text-align: right;
-}
-
-.product-list th.action-col,
-.product-list td.action-col {
+.product-list th,
+.product-list td {
   text-align: center;
+}
+
+.product-list td a {
+  color: #1976d2;
+  text-decoration: underline;
 }
 
 .product-list td button {
@@ -105,13 +67,6 @@ include('admin.php');
 
 .product-list td button:hover {
   background-color: #e57373;
-}
-
-.product-list img {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 5px;
 }
 
 .filter-form {
@@ -161,94 +116,80 @@ include('admin.php');
 
 <div class="content">
   <div class="card">
-    <h1>จัดการสินค้าทั้งหมด</h1>
-    <p>คุณสามารถจัดการสินค้าได้จากที่นี่</p>
+    <h1>คำสั่งซื้อที่รอดำเนินการทั้งหมด</h1>
+    <p>คุณสามารถจัดการคำสั่งซื้อจากที่นี่</p>
 
-    <!-- ฟอร์มกรองหมวดหมู่ -->
+    <!-- Filter form -->
     <form method="GET" class="filter-form">
-      <label for="category_id">เลือกหมวดหมู่:</label>
-      <select name="category_id" id="category_id">
-        <option value="">-- แสดงทั้งหมด --</option>
-        <?php while ($cat = $category_result->fetch_assoc()): ?>
-        <option value="<?= $cat['category_id'] ?>" <?= $selected_category == $cat['category_id'] ? 'selected' : '' ?>>
-          <?= htmlspecialchars($cat['category_name']) ?>
+      <label for="order_status">เลือกสถานะ:</label>
+      <select name="order_status" id="order_status">
+        <?php
+        $statusOptions = ['Pending', 'Paid', 'Shipped', 'Cancelled', 'Completed'];
+        foreach ($statusOptions as $status):
+        ?>
+        <option value="<?= $status ?>" <?= $selected_status === $status ? 'selected' : '' ?>>
+          <?= $status ?>
         </option>
-        <?php endwhile; ?>
+        <?php endforeach; ?>
       </select>
-      <button type="submit">แสดงผล</button>
+      <button type="submit">กรอง</button>
     </form>
 
-    <!-- ตารางสินค้า -->
-
-    <!-- <h1>Order Management</h1> -->
-
-    <?php if (count($orders) > 0): ?>
-    <table>
+    <!-- Order table -->
+    <table class="product-list">
       <thead>
         <tr>
           <th>#</th>
-          <th>Full Name</th>
-          <th>Email</th>
-          <th>Order No</th>
-          <th>Address</th>
-          <th>Tel</th>
-          <th>Receive Date</th>
-          <th>Total Qty</th>
-          <th>Total Price</th>
-          <th>VAT</th>
-          <th>Grand Total</th>
-          <th>Payment Slip</th>
-          <th>Payment Method</th>
-          <th>Status</th>
+          <th>เลขที่คำสั่งซื้อ</th>
+          <th>ชื่อผู้สั่ง</th>
+          <th>อีเมล</th>
+          <th>จำนวน</th>
+          <th>ยอดรวม</th>
+          <th>วันที่รับ</th>
+          <th>สถานะ</th>
+          <th>การจัดการ</th>
         </tr>
       </thead>
       <tbody>
-        <?php foreach ($orders as $index => $order): ?>
+        <?php $index = $offset + 1; ?>
+        <?php while ($order = $result->fetch_assoc()): ?>
         <tr>
-          <td><?= $index + 1 ?></td>
+          <td><?= $index++ ?></td>
+          <td>
+            <a href="order_detail.php?order_id=<?= $order['order_id'] ?>">
+              <?= htmlspecialchars($order['order_no']) ?>
+            </a>
+          </td>
           <td><?= htmlspecialchars($order['full_name']) ?></td>
           <td><?= htmlspecialchars($order['user_email']) ?></td>
-          <td><?= $order['order_no'] ?></td>
-          <td><?= htmlspecialchars($order['address']) ?></td>
-          <td><?= $order['tel'] ?></td>
-          <td><?= $order['receive_date'] ?></td>
           <td><?= $order['total_qty'] ?></td>
-          <td><?= number_format($order['total_price'], 2) ?></td>
-          <td><?= number_format($order['vat'], 2) ?></td>
-          <td><?= number_format($order['grand_total'], 2) ?></td>
-          <td><a href="uploads/<?= $order['payment_slip'] ?>" target="_blank"><?= $order['payment_slip'] ?></a></td>
-          <td><?= $order['payment_method'] ?></td>
-          <td><?= $order['order_status'] ?></td>
+          <td><?= number_format($order['grand_total'], 2) ?> บาท</td>
+          <td><?= htmlspecialchars($order['receive_date']) ?></td>
+          <td><?= htmlspecialchars($order['order_status']) ?></td>
+          <td>
+            <a href="order_detail.php?order_id=<?= $order['order_id'] ?>"><button>ดูรายละเอียด</button></a>
+
+          </td>
         </tr>
-        <?php endforeach; ?>
+        <?php endwhile; ?>
       </tbody>
     </table>
-    <?php else: ?>
-    <p>No orders found.</p>
-    <?php endif; ?>
-
-    <script>
-    const ordersData = <?= json_encode($orders, JSON_PRETTY_PRINT) ?>;
-    console.log("Orders:", ordersData);
-    </script>
-
-
 
     <!-- Pagination -->
     <div class="pagination">
       <?php if ($current_page > 1): ?>
-      <a href="?category_id=<?= $selected_category ?>&page=<?= $current_page - 1 ?>">&laquo; ก่อนหน้า</a>
+      <a href="?order_status=<?= urlencode($selected_status) ?>&page=<?= $current_page - 1 ?>">&laquo; ก่อนหน้า</a>
       <?php endif; ?>
 
       <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-      <a href="?category_id=<?= $selected_category ?>&page=<?= $i ?>"
+      <a href="?order_status=<?= urlencode($selected_status) ?>&page=<?= $i ?>"
         <?= $i == $current_page ? 'style="font-weight:bold; text-decoration:underline;"' : '' ?>>
         <?= $i ?>
       </a>
       <?php endfor; ?>
 
       <?php if ($current_page < $total_pages): ?>
-      <a href="?category_id=<?= $selected_category ?>&page=<?= $current_page + 1 ?>">ถัดไป &raquo;</a>
+      <a href="?order_status=<?= urlencode($selected_status) ?>&page=<?= $current_page + 1 ?>">ถัดไป &raquo;</a>
       <?php endif; ?>
     </div>
   </div>
