@@ -214,6 +214,12 @@ if (isset($_SESSION['email'])) {
       font-size: 12px;
       margin-top: 8px;
     }
+
+    .note-1 {
+      color: black;
+      font-size: 12px;
+      margin-top: 8px;
+    }
   </style>
 </head>
 <script>
@@ -245,6 +251,7 @@ if (isset($_SESSION['email'])) {
         <div class="form-group"><input type="text" name="province" placeholder="จังหวัด" value="<?= $user['province'] ?? '' ?>" readonly required><input type="text" name="zipcode" placeholder="รหัสไปรษณีย์" value="<?= $user['post_code'] ?? '' ?>" readonly required></div>
         <input type="date" name="receive_date" id="receive_date" required min="<?= $minDate ?>">
         <div class="note">**กรุณาเลือกวันที่รับสินค้าและตรวจสอบที่อยู่ให้ถูกต้องก่อนยืนยันการสั่งซื้อ**</div>
+        <div class="note-1">(สินค้าจะได้รับหลังการสั่งซื้ออย่างน้อย 3 วัน)</div>
       </div>
       <div class="cart-section">
         <h2>รายการสินค้า</h2>

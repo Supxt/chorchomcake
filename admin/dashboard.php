@@ -17,12 +17,15 @@ include('admin.php');
       font-family: 'Kanit', sans-serif;
       background-color: #fff7f9;
       margin: 0;
-      padding: 20px;
     }
 
     .dashboard-container {
       max-width: 100%;
       margin: auto;
+      margin-top: 30px;
+      margin-left: 220px;
+      /* <<< เพิ่มบรรทัดนี้ เพื่อเว้นที่ด้านซ้าย */
+      padding: 0 20px;
     }
 
     .stats {
@@ -38,7 +41,7 @@ include('admin.php');
       padding: 20px;
       border-radius: 12px;
       text-align: center;
-      width: 250px;
+      width: 150px;
       margin-bottom: 20px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
@@ -120,7 +123,6 @@ include('admin.php');
             <option value="คัพเค้ก">คัพเค้ก</option>
             <option value="เค้กมะพร้าว">เค้กมะพร้าว</option>
             <option value="บาน้อฟฟี่เค้ก">บาน้อฟฟี่เค้ก</option>
-
           </select>
         </label>
       </div>
@@ -149,7 +151,7 @@ include('admin.php');
           },
           title: {
             display: true,
-            text: 'สถิติยอดขายตามช่วงเวลา'
+            text: 'สถิติยอดขาย'
           }
         },
         scales: {
