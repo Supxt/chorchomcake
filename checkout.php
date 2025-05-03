@@ -53,13 +53,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cart_p_ids'])) {
       'p_id' => $product['p_id'],
       'p_name' => $product['p_name'],
       'price' => $product['price'],
-      'qty' => $buyNowItem['qty'],
+      'qty' => 1,
       'image' => $product['image'] ?? 'default.jpg',
-      'code' => $product['code'] ?? '',
+      'code' => $product['code'],
     ];
-    $total += $product['price'] * $buyNowItem['qty'];
-    $total_qty += $buyNowItem['qty'];
+    $total += $product['price'] * 1;
+    $total_qty += 1;
   }
+
+  echo "<script>console.log('Item: " . json_encode($cartProducts) . "');</script>";
+
 } else {
   header('Location: product.php');
   exit;

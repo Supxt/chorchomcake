@@ -17,10 +17,13 @@ $total_qty = 0;
 // Check if coming from Buy Now session
 if (isset($_SESSION['buy_now'])) {
   $cart = [$_SESSION['buy_now']];
-}
+  foreach ($cart as $item) {
+    echo "<script>console.log('Item in case 1: " . json_encode($item) . "');</script>";
+    $total += $item['price'] * $item['qty'];
+    $total_qty += $item['qty'];
+  }
 
-// Check if coming from Cart POST
-else if (isset($_POST['cart_p_ids'])) {
+} else if (isset($_POST['cart_p_ids'])) {
   foreach ($_POST['cart_p_ids'] as $p_id) {
     $p_id = intval($p_id);
     $qty = intval($_POST['cart_qtys'][$p_id] ?? 1);
@@ -43,7 +46,6 @@ else if (isset($_POST['cart_p_ids'])) {
     }
   }
 } else {
-  // fallback
   $cart = $_SESSION['cart'] ?? [];
   foreach ($cart as $item) {
     $total += $item['price'] * $item['qty'];
