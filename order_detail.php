@@ -35,7 +35,6 @@ $order = $result_order->fetch_assoc();
   body {
     font-family: 'Segoe UI', sans-serif;
     background-color: #fff7f0;
-    padding: 20px;
   }
 
   .container {
@@ -113,8 +112,10 @@ $order = $result_order->fetch_assoc();
 
       <?php if (!empty($order['payment_slip'])): ?>
       <p><strong>หลักฐานการชำระเงิน:</strong></p>
-      <img class="payment-slip" src="uploads/<?= htmlspecialchars($order['payment_slip']) ?>" alt="หลักฐานการชำระเงิน">
+      <img class="payment-slip" src="uploads/<?= htmlspecialchars($order['payment_slip']) ?>" alt="หลักฐานการชำระเงิน"
+        style="max-width: 300px;">
       <?php endif; ?>
+
     </div>
 
     <div class="back-btn">

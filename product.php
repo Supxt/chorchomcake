@@ -177,21 +177,5 @@ $buyNowProduct = $_SESSION['buy_now'] ?? null;
     </a>
   <?php endfor; ?>
 </div>
-
-<!-- Buy Now Summary -->
-<?php if ($buyNowProduct): ?>
-  <div class="checkout-container" style="margin-top: 30px;">
-    <h2>สรุปการสั่งซื้อ</h2>
-    <p>สินค้า: <?= htmlspecialchars($buyNowProduct['p_name']) ?></p>
-    <p>จำนวน: <?= $buyNowProduct['qty'] ?></p>
-    <p>ราคาต่อชิ้น: <?= number_format($buyNowProduct['price'], 2) ?> บาท</p>
-    <p>รวมทั้งหมด: <strong><?= number_format($buyNowProduct['price'] * $buyNowProduct['qty'], 2) ?> บาท</strong></p>
-
-    <form action="checkout.php" method="get">
-      <button type="submit" class="btn-buy">ไปหน้าชำระเงิน</button>
-    </form>
-  </div>
-<?php endif; ?>
-
 </body>
 </html>
