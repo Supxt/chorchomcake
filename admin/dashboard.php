@@ -38,10 +38,10 @@ include('admin.php');
     .card {
       background-color: #fff;
       border: 1px solid #f3d1c0;
-      padding: 20px;
+      padding: 30px;
       border-radius: 12px;
       text-align: center;
-      width: 150px;
+      width: 170px;
       margin-bottom: 20px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
@@ -80,6 +80,19 @@ include('admin.php');
       padding: 10px;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     }
+
+
+    .card-1 {
+      background-color: #fff;
+      border: 1px solid #f3d1c0;
+      padding: 100px;
+      border-radius: 12px;
+      text-align: center;
+      width: 760px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      margin-top: 40px;
+    }
   </style>
 </head>
 
@@ -91,7 +104,7 @@ include('admin.php');
         <p id="totalSales">0 บาท</p>
       </div>
       <div class="card">
-        <h3>สินค้าคงเหลือ</h3>
+        <h3>สินค้าคงเหลือทั้งหมด</h3>
         <p id="stock">0 ชิ้น</p>
       </div>
       <div class="card">
@@ -127,8 +140,11 @@ include('admin.php');
         </label>
       </div>
     </div>
-
     <canvas id="salesChart" height="100"></canvas>
+    <div class="card-1">
+      <h3>สินค้าคงเหลือวันนี้</h3>
+      <p id="stock">0 ชิ้น</p>
+    </div>
   </div>
 
   <script>
@@ -189,7 +205,36 @@ include('admin.php');
     document.getElementById('stock').textContent = '2,342 ชิ้น';
     document.getElementById('todayOrders').textContent = '27 รายการ';
     document.getElementById('totalOrders').textContent = '1,280 รายการ';
+    const stockData = [{
+        name: 'เค้กมินิมอล',
+        quantity: 150
+      },
+      {
+        name: 'เค้กวินเทจ',
+        quantity: 90
+      },
+      {
+        name: 'คัพเค้ก',
+        quantity: 200
+      },
+      {
+        name: 'เค้กมะพร้าว',
+        quantity: 120
+      },
+      {
+        name: 'บาน้อฟฟี่เค้ก',
+        quantity: 75
+      }
+    ];
+    const stockList = document.getElementById('stockList');
+    stockList.innerHTML = '';
+    stockData.forEach(item => {
+      const li = document.createElement('li');
+      li.textContent = `${item.name}: ${item.quantity} ชิ้น`;
+      stockList.appendChild(li);
+    });
   </script>
+
 </body>
 
 </html>

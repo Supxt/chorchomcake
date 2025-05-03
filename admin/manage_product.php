@@ -34,38 +34,9 @@ $sql = "
   LEFT JOIN category c ON p.category_id = c.category_id
 ";
 
-
-
-
-
-
-
-
-
-
-
-
 if ($selected_category) {
   $sql .= " WHERE p.category_id = " . (int)$selected_category;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 $sql .= " LIMIT $items_per_page OFFSET $offset";
 

@@ -100,6 +100,9 @@ session_start();
         <div class="footer">
             <p>ยังไม่มีบัญชี? <a href="register.php">สมัครสมาชิก</a></p>
         </div>
+        <div class="footer">
+            <p><a href="product.php">กลับสู่หน้าหลัก</a></p>
+        </div>
     </div>
 
     <!-- แสดง SweetAlert2 ถ้ามี error -->

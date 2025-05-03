@@ -90,9 +90,9 @@ $result = $conn->query($sql);
 
   <!-- Sidebar -->
   <?php
-    include('../components/sidebar.php');
-    ?>
-    
+  include('../components/sidebar.php');
+  ?>
+
   <script>
     function toggleMenu(el) {
       const next = el.nextElementSibling;
