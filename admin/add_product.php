@@ -3,7 +3,6 @@ include('../dbconnect.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $name = $_POST['p_name'];
-  $code = $_POST['code'];
   $price = $_POST['price'];
   $category_id = $_POST['category_id'];
   $description = $_POST['description'];
@@ -259,10 +258,6 @@ $cat_result = $conn->query("SELECT * FROM category");
         <div class="form-group">
           <label>ชื่อสินค้า</label>
           <input type="text" name="p_name" required>
-        </div>
-        <div class="form-group">
-          <label>รหัสสินค้า</label>
-          <input type="text" name="code" required>
         </div>
         <div class="form-group">
           <label>จำนวนสินค้า</label>

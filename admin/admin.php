@@ -173,7 +173,7 @@ $result = $conn->query($sql);
         <i class="fas fa-chevron-down"></i>
       </li>
       <ul class="submenu">
-        <li><a href="#">รายชื่อผู้ใช้</a></li>
+        <li><a href="user.php">รายชื่อผู้ใช้</a></li>
         <li><a href="#">สิทธิ์การเข้าถึง</a></li>
       </ul>
     </ul>
