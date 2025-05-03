@@ -32,62 +32,62 @@ $order = $result_order->fetch_assoc();
   <meta charset="UTF-8">
   <title>รายละเอียดการสั่งซื้อ</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #fff7f0;
-      padding: 20px;
-    }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #fff7f0;
+    padding: 20px;
+  }
 
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
 
-    h1 {
-      text-align: center;
-      color: #c67878;
-      margin-bottom: 30px;
-    }
+  h1 {
+    text-align: center;
+    color: #c67878;
+    margin-bottom: 30px;
+  }
 
-    .detail {
-      margin-bottom: 20px;
-    }
+  .detail {
+    margin-bottom: 20px;
+  }
 
-    .detail p {
-      margin-bottom: 10px;
-      font-size: 16px;
-    }
+  .detail p {
+    margin-bottom: 10px;
+    font-size: 16px;
+  }
 
-    img.payment-slip {
-      max-width: 300px;
-      border-radius: 10px;
-      margin-top: 10px;
-      border: 1px solid #ccc;
-    }
+  img.payment-slip {
+    max-width: 300px;
+    border-radius: 10px;
+    margin-top: 10px;
+    border: 1px solid #ccc;
+  }
 
-    .back-btn {
-      display: block;
-      margin-top: 30px;
-      text-align: center;
-    }
+  .back-btn {
+    display: block;
+    margin-top: 30px;
+    text-align: center;
+  }
 
-    .btn {
-      background-color: #f48fb1;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      text-decoration: none;
-      font-size: 16px;
-    }
+  .btn {
+    background-color: #f48fb1;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 16px;
+  }
 
-    .btn:hover {
-      background-color: #e56b90;
-    }
+  .btn:hover {
+    background-color: #e56b90;
+  }
   </style>
 </head>
 
@@ -97,7 +97,8 @@ $order = $result_order->fetch_assoc();
 
     <div class="detail">
       <p><strong>รหัสการสั่งซื้อ:</strong> <?= htmlspecialchars($order['order_no']) ?></p>
-      <p><strong>วันที่สั่งซื้อ:</strong> <?= htmlspecialchars(date('d/m/Y H:i', strtotime($order['created_at']))) ?></p>
+      <p><strong>วันที่สั่งซื้อ:</strong> <?= htmlspecialchars(date('d/m/Y H:i', strtotime($order['created_at']))) ?>
+      </p>
       <p><strong>ชื่อผู้สั่งซื้อ:</strong> <?= htmlspecialchars($order['full_name']) ?></p>
       <p><strong>อีเมล:</strong> <?= htmlspecialchars($order['user_email']) ?></p>
       <p><strong>เบอร์โทร:</strong> <?= htmlspecialchars($order['tel']) ?></p>
@@ -111,8 +112,8 @@ $order = $result_order->fetch_assoc();
       <p><strong>สถานะการสั่งซื้อ:</strong> <?= htmlspecialchars($order['order_status']) ?></p>
 
       <?php if (!empty($order['payment_slip'])): ?>
-        <p><strong>หลักฐานการชำระเงิน:</strong></p>
-        <img class="payment-slip" src="image/<?= htmlspecialchars($order['payment_slip']) ?>" alt="หลักฐานการชำระเงิน">
+      <p><strong>หลักฐานการชำระเงิน:</strong></p>
+      <img class="payment-slip" src="uploads/<?= htmlspecialchars($order['payment_slip']) ?>" alt="หลักฐานการชำระเงิน">
       <?php endif; ?>
     </div>
 

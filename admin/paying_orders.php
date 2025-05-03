@@ -2,7 +2,7 @@
 include_once('../dbconnect.php');
 
 // Filter status
-$selected_status = isset($_GET['order_status']) && $_GET['order_status'] !== '' ? $_GET['order_status'] : 'กำลังดำเนินการ';
+$selected_status = isset($_GET['order_status']) && $_GET['order_status'] !== '' ? $_GET['order_status'] : 'รอการชำระเงิน';
 
 // Pagination setup
 $items_per_page = 10;
@@ -116,10 +116,8 @@ include('admin.php');
 
 <div class="content">
   <div class="card">
-    <h1>คำสั่งซื้อที่กำลังดำเนินการทั้งหมด</h1>
+    <h1>คำสั่งซื้อที่รอการชำระเงินทั้งหมด</h1>
     <p>คุณสามารถจัดการคำสั่งซื้อจากที่นี่</p>
-
-
 
     <!-- Order table -->
     <table class="product-list">
