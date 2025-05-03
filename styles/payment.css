@@ -1,0 +1,99 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", sans-serif;
+  line-height: 1.6;
+  background-color: #fefefe;
+  color: #333;
+}
+
+.container {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #fff7f0;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  font-size: 16px;
+}
+
+h2 {
+  color: #d96c6c;
+}
+
+.section {
+  margin-bottom: 30px;
+}
+
+.section th.id-col,
+.section td.id-col,
+.section th.name-col,
+.section td.name-col {
+  text-align: left;
+}
+
+.section th.price-col,
+.section td.price-col {
+  text-align: right;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+table,
+th,
+td {
+  border: 1px solid #ddd;
+}
+
+th,
+td {
+  padding: 10px;
+  text-align: center;
+}
+
+.text-right {
+  padding: 2px;
+  text-align: right;
+  color: rgb(179, 102, 102);
+  font-size: 16px;
+}
+
+.text-right-1 {
+  text-align: right;
+}
+
+.payment-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn {
+  padding: 10px 20px;
+  background-color: #f48fb1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  float: right;
+}
+
+.note {
+  color: red;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+img {
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}

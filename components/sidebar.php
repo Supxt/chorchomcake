@@ -13,8 +13,8 @@
       <i class="fas fa-chevron-down"></i>
     </li>
     <ul class="submenu">
-      <li><a href="#">รอดำเนินการ</a></li>
-      <li><a href="#">จัดส่งแล้ว</a></li>
+      <li><a href="pending_orders.php">รอดำเนินการ</a></li>
+      <li><a href="done_orders.php">จัดส่งแล้ว</a></li>
     </ul>
 
     <li onclick="toggleMenu(this)">

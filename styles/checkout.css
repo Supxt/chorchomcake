@@ -1,0 +1,131 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", sans-serif;
+  line-height: 1.6;
+  background-color: #fefefe;
+  color: #333;
+}
+
+.main-container {
+  display: flex;
+  max-width: 1100px;
+  margin: 10px auto;
+  padding: 20px;
+  background-color: #fff0e5;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-section,
+.cart-section {
+  flex: 1;
+  padding: 20px;
+}
+
+.form-section h2,
+.cart-section h2 {
+  margin-bottom: 16px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="date"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.form-group {
+  display: flex;
+  gap: 10px;
+}
+
+.form-group > div {
+  flex: 1;
+}
+
+.cart-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cart-table th,
+.cart-table td {
+  font-size: 16px;
+  padding: 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+.cart-table th.text-right,
+.cart-table td.text-right {
+  text-align: right;
+}
+
+.cart-table th {
+  background-color: #f7b7a3;
+  font-size: 17px;
+  font-weight: bold;
+}
+
+.cart-table img {
+  width: 60px;
+  border-radius: 6px;
+}
+
+.cart-summary {
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 20px;
+  font-size: 18px;
+  text-align: right;
+}
+
+.cart-summary strong {
+  font-weight: bold;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.btn-cancel {
+  background-color: #ccc;
+  color: #333;
+}
+
+.btn-confirm {
+  background-color: #f48fb1;
+  color: white;
+  margin-left: 10px;
+  margin-top: 50px;
+}
+
+.btn-confirm :hover {
+  background-color: rgb(114, 52, 52);
+}
+
+.note {
+  color: red;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.note-1 {
+  color: black;
+  font-size: 12px;
+  margin-top: 8px;
+}
