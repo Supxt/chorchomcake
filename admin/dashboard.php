@@ -1,14 +1,73 @@
 <?php
 include_once('../dbconnect.php');
 include('admin.php');
+
+$sql = "SELECT 
+            od.p_id,
+            p.p_name,
+            p.price,
+            p.quantity AS stock_remaining,
+            p.image,
+            SUM(od.o_qty) AS total_sold
+        FROM 
+            order_details od
+        JOIN 
+            product p ON od.p_id = p.p_id
+        GROUP BY 
+            od.p_id, p.p_name, p.price, p.quantity, p.image
+        ORDER BY 
+            total_sold DESC
+        LIMIT 5";
+
+$result = mysqli_query($conn, $sql);
+$topProducts = [];
+
+if ($result) {
+  while ($row = mysqli_fetch_assoc($result)) {
+    $topProducts[] = $row;
+  }
+}
+
+// Total Sales
+$sqlTotalSales = "SELECT SUM(totol) AS total_sales FROM order_details";
+$resTotalSales = mysqli_query($conn, $sqlTotalSales);
+$totalSales = mysqli_fetch_assoc($resTotalSales)['total_sales'] ?? 0;
+
+// Total Stock
+$sqlStock = "SELECT SUM(quantity) AS total_stock FROM product";
+$resStock = mysqli_query($conn, $sqlStock);
+$totalStock = mysqli_fetch_assoc($resStock)['total_stock'] ?? 0;
+
+// Today's Orders
+$today = date('Y-m-d');
+$sqlTodayOrders = "SELECT COUNT(*) AS today_orders FROM orders WHERE DATE(order_date) = '$today'";
+$resTodayOrders = mysqli_query($conn, $sqlTodayOrders);
+$todayOrders = mysqli_fetch_assoc($resTodayOrders)['today_orders'] ?? 0;
+
+// Total Orders
+$sqlTotalOrders = "SELECT COUNT(*) AS total_orders FROM orders";
+$resTotalOrders = mysqli_query($conn, $sqlTotalOrders);
+$totalOrders = mysqli_fetch_assoc($resTotalOrders)['total_orders'] ?? 0;
+
+
+$sqlAvailableToday = "SELECT p_id, p_name, quantity, image, price FROM product WHERE quantity > 0";
+$resultAvailableToday = mysqli_query($conn, $sqlAvailableToday);
+
+$availableToday = [];
+if ($resultAvailableToday) {
+  while ($row = mysqli_fetch_assoc($resultAvailableToday)) {
+    $availableToday[] = $row;
+  }
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="th">
-
-
 <head>
   <meta charset="UTF-8">
   <title>แดชบอร์ด</title>
+  <link rel="stylesheet" href="../styles/products.css">
+  <link rel="stylesheet" href="../styles/productcard.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Kanit&display=swap');
@@ -32,7 +91,7 @@ include('admin.php');
       display: flex;
       justify-content: space-around;
       flex-wrap: wrap;
-      margin-bottom: 30px;
+      margin : 30px
     }
 
     .card {
@@ -41,7 +100,9 @@ include('admin.php');
       padding: 30px;
       border-radius: 12px;
       text-align: center;
-      width: 170px;
+      /* width: 170px; */
+      width: 230px;
+      height: 120px;
       margin-bottom: 20px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
@@ -49,6 +110,15 @@ include('admin.php');
     .card h3 {
       margin-bottom: 10px;
       color: #6d4c41;
+    }
+
+    .text-container-center {
+      text-align: center;
+    }
+
+    .text-header {
+      color: #6d4c41;
+      margin-bottom: 20px;
     }
 
     .filter-section {
@@ -97,54 +167,105 @@ include('admin.php');
 </head>
 
 <body>
+
+
   <div class="dashboard-container">
+  <div >
+
+  <div class="text-container-center">
+      <h1 class="text-header" >แดชบอร์ด</h1>
+      
+  </div>
+
+
+
+</div>
+<h3>ภาพรวม</h3>
     <div class="stats">
       <div class="card">
         <h3>ยอดจำหน่ายรวม</h3>
-        <p id="totalSales">0 บาท</p>
-      </div>
-      <div class="card">
-        <h3>สินค้าคงเหลือทั้งหมด</h3>
-        <p id="stock">0 ชิ้น</p>
+        <p ><?= number_format($totalSales, 2) ?> บาท</p>
       </div>
       <div class="card">
         <h3>คำสั่งซื้อวันนี้</h3>
-        <p id="todayOrders">0 รายการ</p>
+        <p id=""><?= $todayOrders ?> รายการ</p>
+
       </div>
+     
       <div class="card">
         <h3>ยอดคำสั่งซื้อรวม</h3>
-        <p id="totalOrders">0 รายการ</p>
-      </div>
-    </div>
+        <p id=""><?= $totalOrders ?> รายการ</p>
 
-    <div class="filter-section">
-      <div>
-        <label>ช่วงเวลา:
-          <select id="timeRange" onchange="updateChart()">
-            <option value="day">วันนี้</option>
-            <option value="week">สัปดาห์นี้</option>
-            <option value="year">ปีนี้</option>
-          </select>
-        </label>
       </div>
-      <div>
-        <label>หมวดหมู่:
-          <select id="category" onchange="updateChart()">
-            <option value="ทั้งหมด">ทั้งหมด</option>
-            <option value="เค้กมินิมอล">เค้กมินิมอล</option>
-            <option value="เค้กวินเทจ">เค้กวินเทจ</option>
-            <option value="คัพเค้ก">คัพเค้ก</option>
-            <option value="เค้กมะพร้าว">เค้กมะพร้าว</option>
-            <option value="บาน้อฟฟี่เค้ก">บาน้อฟฟี่เค้ก</option>
-          </select>
-        </label>
+      <div class="card">
+        <h3>สินค้าคงเหลือทั้งหมด</h3>
+        <p id=""><?= number_format($totalStock) ?> ชิ้น</p>
       </div>
     </div>
+<div>
+
+<h3>สินค้าขายดี</h3>
+<div class="container">
+<?php foreach ($topProducts as $product): ?>
+
+  <div class="product-card">
+    <div href="/product_detail.php?p_id=<?= $product['p_id'] ?>" style="text-decoration: none; color: inherit;">
+      <img src="../image/<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['p_name']) ?>" class="image">
+      <div class="product-info">
+      <strong><?= htmlspecialchars($product['p_name']) ?></strong><br>
+        ขายแล้ว: <?= $product['total_sold'] ?> ชิ้น<br>
+        คงเหลือ: <?= $product['stock_remaining'] ?> ชิ้น<br>
+        ราคา: <?= number_format($product['price'], 2) ?> บาท<br>
+      </div>
+</div>
+  </div>
+  <?php endforeach; ?>
+  </div>
+    
+  <h3>สถิติยอดขายรวม</h3>
+
+<div class="filter-section">
+  <div>
+    <label>ช่วงเวลา:
+      <select id="timeRange" onchange="updateChart()">
+        <option value="day">วันนี้</option>
+        <option value="week" selected>สัปดาห์นี้</option>
+        <option value="year">ปีนี้</option>
+      </select>
+    </label>
+  </div>
+  <div>
+    <label>หมวดหมู่:
+      <select id="category" onchange="updateChart()">
+        <option value="ทั้งหมด" selected>ทั้งหมด</option>
+        <option value="เค้กมินิมอล">เค้กมินิมอล</option>
+        <option value="เค้กวินเทจ">เค้กวินเทจ</option>
+        <option value="คัพเค้ก">คัพเค้ก</option>
+        <option value="เค้กมะพร้าว">เค้กมะพร้าว</option>
+        <option value="บาน้อฟฟี่เค้ก">บาน้อฟฟี่เค้ก</option>
+      </select>
+    </label>
+  </div>
+</div>
     <canvas id="salesChart" height="100"></canvas>
-    <div class="card-1">
-      <h3>สินค้าคงเหลือวันนี้</h3>
-      <p id="stock">0 ชิ้น</p>
+
+
+
+
+<h3 style="margin:30px" >สินค้าคงเหลือวันนี้</h3>
+<div class="container">
+  <?php foreach ($availableToday as $product): ?>
+    <div class="product-card">
+      <img src="../image/<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['p_name']) ?>" class="image">
+      <div class="product-info">
+        <strong><?= htmlspecialchars($product['p_name']) ?></strong><br>
+        คงเหลือ: <?= $product['quantity'] ?> ชิ้น<br>
+        ราคา: <?= number_format($product['price'], 2) ?> บาท
+      </div>
     </div>
+  <?php endforeach; ?>
+</div>
+
   </div>
 
   <script>
@@ -171,68 +292,42 @@ include('admin.php');
           }
         },
         scales: {
-          y: {
-            beginAtZero: true
+      x: {
+        ticks: {
+          callback: function(value, index, ticks) {
+            // Format from yyyy-mm-dd to dd-mm-yyyy
+            const raw = this.getLabelForValue(value);
+            const [y, m, d] = raw.split("-");
+            return `${d}-${m}-${y}`;
           }
         }
+      },
+      y: {
+        beginAtZero: true
+      }
+    }
       }
     });
 
-    function updateChart() {
+    async function updateChart() {
       const range = document.getElementById('timeRange').value;
       const category = document.getElementById('category').value;
 
-      // จำลองการเปลี่ยนข้อมูลตามช่วงเวลา/หมวดหมู่
-      const dataSets = {
-        day: [3000],
-        week: [1000, 2000, 1500, 2200, 1800, 1900, 2100],
-        year: [10000, 11000, 9000, 8500, 12000, 13000, 11000, 10000, 9000, 8500, 9500, 11500]
-      };
+      const res = await fetch(`sales_data.php?range=${range}&category=${category}`);
+      const json = await res.json();
 
-      const labels = {
-        day: ['วันนี้'],
-        week: ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัส', 'ศุกร์', 'เสาร์', 'อาทิตย์'],
-        year: ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']
-      };
+      const labels = json.data.map(row => row.sale_date);
+      const values = json.data.map(row => parseFloat(row.daily_sales));
 
-      salesChart.data.labels = labels[range];
-      salesChart.data.datasets[0].data = dataSets[range];
+      salesChart.data.labels = labels;
+      salesChart.data.datasets[0].data = values;
       salesChart.update();
     }
 
-    // ใส่ข้อมูลจำลองกล่องแสดงยอดรวม
-    document.getElementById('totalSales').textContent = '52,500 บาท';
-    document.getElementById('stock').textContent = '2,342 ชิ้น';
-    document.getElementById('todayOrders').textContent = '27 รายการ';
-    document.getElementById('totalOrders').textContent = '1,280 รายการ';
-    const stockData = [{
-        name: 'เค้กมินิมอล',
-        quantity: 150
-      },
-      {
-        name: 'เค้กวินเทจ',
-        quantity: 90
-      },
-      {
-        name: 'คัพเค้ก',
-        quantity: 200
-      },
-      {
-        name: 'เค้กมะพร้าว',
-        quantity: 120
-      },
-      {
-        name: 'บาน้อฟฟี่เค้ก',
-        quantity: 75
-      }
-    ];
-    const stockList = document.getElementById('stockList');
-    stockList.innerHTML = '';
-    stockData.forEach(item => {
-      const li = document.createElement('li');
-      li.textContent = `${item.name}: ${item.quantity} ชิ้น`;
-      stockList.appendChild(li);
-    });
+    
+
+    updateChart()
+
   </script>
 
 </body>
