@@ -31,11 +31,11 @@
     </ul>
 
     <li onclick="toggleMenu(this)">
-      <span><i class="fas fa-users"></i> ผู้ใช้งาน</span>
+      <span><i class="fas fa-users"></i> ลูกค้า</span>
       <i class="fas fa-chevron-down"></i>
     </li>
     <ul class="submenu">
-      <li><a href="user.php">รายชื่อผู้ใช้</a></li>
+      <li><a href="user.php">รายชื่อลูกค้า</a></li>
       <li><a href="add_user.php">เพิ่มชื่อผู้ใช้</a></li>
     </ul>
   </ul>
@@ -43,59 +43,59 @@
 
 
 <style>
-.sidebar {
-  width: 220px;
-  background: #fff0f5;
-  height: 100vh;
-  position: fixed;
-  overflow-y: auto;
-  padding-top: 20px;
-  border-right: 1px solid #ddd;
-}
+  .sidebar {
+    width: 220px;
+    background: #fff0f5;
+    height: 100vh;
+    position: fixed;
+    overflow-y: auto;
+    padding-top: 20px;
+    border-right: 1px solid #ddd;
+  }
 
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-}
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+  }
 
-.sidebar li {
-  padding: 12px 20px;
-  color: #8d5544;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+  .sidebar li {
+    padding: 12px 20px;
+    color: #8d5544;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 
-.sidebar li:hover,
-.sidebar li.active {
-  background-color: #ffc0cb;
-  color: #fff;
-}
+  .sidebar li:hover,
+  .sidebar li.active {
+    background-color: #ffc0cb;
+    color: #fff;
+  }
 
-.sidebar li i {
-  margin-right: 10px;
-}
+  .sidebar li i {
+    margin-right: 10px;
+  }
 
-.submenu {
-  display: none;
-  background-color: #ffe4e1;
-  padding-left: 20px;
-}
+  .submenu {
+    display: none;
+    background-color: #ffe4e1;
+    padding-left: 20px;
+  }
 
-.submenu a {
-  display: block;
-  padding: 8px 0;
-  color: #8d5544;
-  text-decoration: none;
-}
+  .submenu a {
+    display: block;
+    padding: 8px 0;
+    color: #8d5544;
+    text-decoration: none;
+  }
 
-.submenu a:hover {
-  color: #d13c3c;
-}
+  .submenu a:hover {
+    color: #d13c3c;
+  }
 
-.content {
-  margin-left: 240px;
-  padding: 40px 20px;
-}
+  .content {
+    margin-left: 240px;
+    padding: 40px 20px;
+  }
 </style>
