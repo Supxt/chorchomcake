@@ -33,7 +33,7 @@ include('admin.php');
 
 <head>
   <meta charset="UTF-8">
-  <title>จัดการผู้ใช้</title>
+  <title>จัดการลูกค้า</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Kanit&display=swap');
@@ -137,7 +137,7 @@ include('admin.php');
 
 <body>
   <div class="content">
-    <h2>รายชื่อผู้ใช้งาน</h2>
+    <h2>รายชื่อลูกค้า</h2>
     <table>
       <thead>
         <tr>
@@ -154,6 +154,12 @@ include('admin.php');
             <td><?= htmlspecialchars($user['tel']) ?></td>
             <td><?= htmlspecialchars($user['email']) ?></td>
             <td class="action-col">
+
+              <!-- ปุ่มดูประวัติการสั่งซื้อ -->
+              <a href="order_history.php?user_id=<?= $user['user_id'] ?>" class="action-btn" style="background-color: #5d4037;">
+                <i class="fas fa-shopping-cart"></i> ดูออเดอร์
+              </a>
+
               <!-- ปุ่มแก้ไข -->
               <a href="edit_user.php?id=<?= $user['user_id'] ?>" class="action-btn" style="background-color:#ef9a9a;">
                 <i class="fas fa-edit"></i> แก้ไข
