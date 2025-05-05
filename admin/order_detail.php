@@ -24,10 +24,10 @@ switch ($order['order_status']) {
   case 'สำเร็จ':
     $redirectPage = 'done_orders.php';
     break;
+    case 'ยกเลิก':
+      $redirectPage = 'canceled_orders.php';
+      break;
 }
-
-
-
   include('admin.php');
   ?>
 
@@ -72,6 +72,7 @@ switch ($order['order_status']) {
     border-radius: 10px;
     margin-top: 10px;
     border: 1px solid #ccc;
+    cursor: pointer;
   }
 
   .back-btn {
@@ -99,10 +100,52 @@ switch ($order['order_status']) {
     display: flex;
     align-items: center;
   }
+
+  #imgModal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+  }
+
+  #imgModal img {
+    max-width: 90%;
+    max-height: 90%;
+    border: 5px solid white;
+    border-radius: 8px;
+    box-shadow: 0 0 15px black;
+  }
+
+  #imgModal:target {
+    display: flex;
+    cursor: pointer;
+  }
   </style>
 </head>
 
 <body>
+
+  <div id="imgModal" onclick="closeModal()">
+    <img id="modalImg" src="" alt="Preview">
+  </div>
+
+  <script>
+  function openModal(src) {
+    document.getElementById("modalImg").src = src;
+    document.getElementById("imgModal").style.display = "flex";
+  }
+
+  function closeModal() {
+    document.getElementById("imgModal").style.display = "none";
+  }
+  </script>
+
   <div class="container">
 
     <div class="flex-head">
@@ -130,8 +173,31 @@ switch ($order['order_status']) {
       <?php if (!empty($order['payment_slip'])): ?>
       <p><strong>หลักฐานการชำระเงิน:</strong></p>
       <img class="payment-slip" src="../uploads/<?= htmlspecialchars($order['payment_slip']) ?>"
-        alt="หลักฐานการชำระเงิน">
+        alt="หลักฐานการชำระเงิน" onclick="openModal(this.src)">
       <?php endif; ?>
+
+    </div>
+    <div>
+      <?php if (!in_array($order['order_status'], ['สำเร็จ', 'ยกเลิก'])): ?>
+      <form method="POST" action="update_order_status.php" style="margin-top: 20px; text-align:center;">
+        <input type="hidden" name="order_id" value="<?= $order['order_id'] ?>">
+
+        <?php if ($order['order_status'] === 'รอการชำระเงิน'): ?>
+        <button class="btn" type="submit" name="new_status" value="ยกเลิก">❌ ยกเลิกคำสั่งซื้อ</button>
+
+        <?php elseif ($order['order_status'] === 'รอตรวจสอบการชำระเงิน'): ?>
+        <button class="btn" type="submit" name="new_status" value="กำลังดำเนินการ">➡️ กำลังดำเนินการ</button>
+        <button class="btn" type="submit" name="new_status" value="ยกเลิก">❌ ยกเลิกคำสั่งซื้อ</button>
+
+        <?php elseif ($order['order_status'] === 'กำลังดำเนินการ'): ?>
+        <button class="btn" type="submit" name="new_status" value="กำลังจัดส่ง">📦 กำลังจัดส่ง</button>
+
+        <?php elseif ($order['order_status'] === 'กำลังจัดส่ง'): ?>
+        <button class="btn" type="submit" name="new_status" value="สำเร็จ">✅ สำเร็จ</button>
+        <?php endif; ?>
+      </form>
+      <?php endif; ?>
+
     </div>
 
 

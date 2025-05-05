@@ -18,6 +18,7 @@
       <li><a href="pending_orders.php">กำลังดำเนินการ</a></li>
       <li><a href="transporting_orders.php">กำลังจัดส่ง</a></li>
       <li><a href="done_orders.php">สำเร็จ</a></li>
+      <li><a href="canceled_orders.php">ยกเลิก</a></li>
     </ul>
 
     <li onclick="toggleMenu(this)">
