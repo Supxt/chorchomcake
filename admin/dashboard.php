@@ -101,7 +101,7 @@ if ($resultAvailableToday) {
       border-radius: 12px;
       text-align: center;
       /* width: 170px; */
-      width: 230px;
+      width: 260px;
       height: 120px;
       margin-bottom: 20px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
