@@ -54,6 +54,25 @@ foreach ($cart as $item) {
   $stmt_detail->bind_param("iissidd", $order_id, $pid, $code, $name, $qty, $price, $line_total);
   $stmt_detail->execute();
 }
+//generate invoice data to session
+$_SESSION['invoice_data'] = [
+  'customerName' => $full_name,
+  'customerEmail' => $email,
+  'customerPhone' => $tel,
+  'invoiceNumber' => $order_no,
+  'invoiceDate' => date('d/m/Y'),
+  'receiveDate' => $orderData['receive_date'],
+  'shippingAddress' => $address,
+  'storeAddress' => '64/72 หมู่2 หมู่บ้านกัดชิชิ12 , ต.ศาลายา , อ.พุทธมณฑล , จ.นครปฐม 73170',
+  'items' => array_map(function ($item) {
+    return [
+      'sku' => $item['code'],
+      'description' => $item['p_name'],
+      'quantity' => $item['qty'],
+      'price' => $item['price']
+    ];
+  }, $cart)
+];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['payment_slip'])) {
   echo '<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>';
@@ -220,6 +239,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['payment_slip'])) {
       </div>
       <div class="section">
         <button type="button" id="confirm-payment-btn" class="btn">ยืนยันการชำระเงิน</button>
+      </div>
+
+      <div class="section">
+      <a href="payment-slip.php" target="_blank" rel="noopener noreferrer">
+        <button type="button" id="invoice-data-btn" class="btn">ดูใบสั่งซื้อ</button>
+        </a>
       </div>
     </form>
   </div>
