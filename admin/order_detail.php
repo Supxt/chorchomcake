@@ -29,6 +29,21 @@ switch ($order['order_status']) {
       break;
 }
   include('admin.php');
+
+
+// ดึงรายละเอียดสินค้าใน order นี้
+$sql_items = "SELECT od.product_code, od.product_name, od.o_qty, od.product_price
+              FROM order_details od
+              WHERE od.order_id = $order_id";
+$result_items = $conn->query($sql_items);
+
+$order_items = [];
+if ($result_items && $result_items->num_rows > 0) {
+  while ($row = $result_items->fetch_assoc()) {
+    $order_items[] = $row;
+  }
+}
+
   ?>
 
 <!DOCTYPE html>
@@ -169,6 +184,43 @@ switch ($order['order_status']) {
       <p><strong>รวมราคาทั้งสิ้น:</strong> <?= number_format($order['grand_total'], 2) ?> บาท</p>
       <p><strong>ช่องทางการชำระเงิน:</strong> <?= htmlspecialchars($order['payment_method']) ?></p>
       <p><strong>สถานะการสั่งซื้อ:</strong> <?= htmlspecialchars($order['order_status']) ?></p>
+
+
+      <?php if (!empty($order_items)): ?>
+<div class="section">
+  <h2>📦 รายการสินค้า</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>รหัสสินค้า</th>
+        <th>ชื่อสินค้า</th>
+        <th>จำนวน</th>
+        <th>ราคาต่อชิ้น</th>
+        <th>รวม</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php
+      $subtotal = 0;
+      foreach ($order_items as $item):
+        $line_total = $item['product_price'] * $item['o_qty'];
+        $subtotal += $line_total;
+      ?>
+      <tr>
+        <td><?= htmlspecialchars($item['product_code']) ?></td>
+        <td><?= htmlspecialchars($item['product_name']) ?></td>
+        <td><?= $item['o_qty'] ?></td>
+        <td><?= number_format($item['product_price'], 2) ?> บาท</td>
+        <td><?= number_format($line_total, 2) ?> บาท</td>
+      </tr>
+      <?php endforeach; ?>
+    </tbody>
+  </table>
+  <p class="text-right">รวมก่อน VAT: <?= number_format($subtotal, 2) ?> บาท</p>
+  <p class="text-right">VAT (7%): <?= number_format($order['vat'], 2) ?> บาท</p>
+  <p class="text-right"><strong>รวมสุทธิ: <?= number_format($order['grand_total'], 2) ?> บาท</strong></p>
+</div>
+<?php endif; ?>
 
       <?php if (!empty($order['payment_slip'])): ?>
       <p><strong>หลักฐานการชำระเงิน:</strong></p>

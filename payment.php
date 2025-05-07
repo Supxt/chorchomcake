@@ -89,6 +89,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['payment_slip'])) {
         $updateStmt->bind_param('si', $fileName, $order['order_id']);
         $updateStmt->execute();
 
+        // ตัด stock สินค้าตาม order_details
+        $sqlDetails = "SELECT p_id, o_qty FROM order_details WHERE order_id = ?";
+        $detailStmt = $conn->prepare($sqlDetails);
+        $detailStmt->bind_param("i", $order['order_id']);
+        $detailStmt->execute();
+        $detailsResult = $detailStmt->get_result();
+
+        while ($item = $detailsResult->fetch_assoc()) {
+          $updateStock = $conn->prepare("UPDATE product SET quantity = GREATEST(quantity - ?, 0) WHERE p_id = ?");
+          $updateStock->bind_param("ii", $item['o_qty'], $item['p_id']);
+          $updateStock->execute();
+        }
+
+
         unset($_SESSION['cart']);
         unset($_SESSION['buy_now']);
 
