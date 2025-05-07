@@ -21,8 +21,20 @@ if ($result_order->num_rows == 0) {
 
 $order = $result_order->fetch_assoc();
 
-// **ถ้ามีระบบแยกรายการสินค้าตามออร์เดอร์ ก็เพิ่ม SQL ตรงนี้**
-// เช่น ดึงจากตาราง order_items แต่ตอนนี้เอาเฉพาะข้อมูลรวมมาก่อน
+
+// ดึงรายละเอียดสินค้าใน order นี้
+$sql_items = "SELECT od.product_code, od.product_name, od.o_qty, od.product_price
+              FROM order_details od
+              WHERE od.order_id = $order_id";
+$result_items = $conn->query($sql_items);
+
+$order_items = [];
+if ($result_items && $result_items->num_rows > 0) {
+  while ($row = $result_items->fetch_assoc()) {
+    $order_items[] = $row;
+  }
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -84,8 +96,59 @@ $order = $result_order->fetch_assoc();
     font-size: 16px;
   }
 
-  .btn:hover {
-    background-color: #e56b90;
+    .btn:hover {
+      background-color: #e56b90;
+    }
+
+
+    .section {
+    margin-top: 30px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+
+  th, td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+  }
+
+  .text-right {
+    text-align: right;
+    margin-top: 10px;
+    font-size: 16px;
+  }
+
+
+
+  #imgModal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+  }
+
+  #imgModal img {
+    max-width: 90%;
+    max-height: 90%;
+    border: 5px solid white;
+    border-radius: 8px;
+    box-shadow: 0 0 15px black;
+  }
+
+  #imgModal:target {
+    display: flex;
+    cursor: pointer;
   }
   </style>
 </head>
@@ -93,6 +156,21 @@ $order = $result_order->fetch_assoc();
 <body>
   <div class="container">
     <h1>📄 รายละเอียดการสั่งซื้อ</h1>
+
+    <div id="imgModal" onclick="closeModal()">
+    <img id="modalImg" src="" alt="Preview">
+    </div>
+
+    <script>
+    function openModal(src) {
+      document.getElementById("modalImg").src = src;
+      document.getElementById("imgModal").style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("imgModal").style.display = "none";
+    }
+    </script>
 
     <div class="detail">
       <p><strong>รหัสการสั่งซื้อ:</strong> <?= htmlspecialchars($order['order_no']) ?></p>
@@ -110,11 +188,50 @@ $order = $result_order->fetch_assoc();
       <p><strong>ช่องทางการชำระเงิน:</strong> <?= htmlspecialchars($order['payment_method']) ?></p>
       <p><strong>สถานะการสั่งซื้อ:</strong> <?= htmlspecialchars($order['order_status']) ?></p>
 
+      <?php if (!empty($order_items)): ?>
+<div class="section">
+  <h2>📦 รายการสินค้า</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>รหัสสินค้า</th>
+        <th>ชื่อสินค้า</th>
+        <th>จำนวน</th>
+        <th>ราคาต่อชิ้น</th>
+        <th>รวม</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php
+      $subtotal = 0;
+      foreach ($order_items as $item):
+        $line_total = $item['product_price'] * $item['o_qty'];
+        $subtotal += $line_total;
+      ?>
+      <tr>
+        <td><?= htmlspecialchars($item['product_code']) ?></td>
+        <td><?= htmlspecialchars($item['product_name']) ?></td>
+        <td><?= $item['o_qty'] ?></td>
+        <td><?= number_format($item['product_price'], 2) ?> บาท</td>
+        <td><?= number_format($line_total, 2) ?> บาท</td>
+      </tr>
+      <?php endforeach; ?>
+    </tbody>
+  </table>
+  <p class="text-right">รวมก่อน VAT: <?= number_format($subtotal, 2) ?> บาท</p>
+  <p class="text-right">VAT (7%): <?= number_format($order['vat'], 2) ?> บาท</p>
+  <p class="text-right"><strong>รวมสุทธิ: <?= number_format($order['grand_total'], 2) ?> บาท</strong></p>
+</div>
+<?php endif; ?>
+
+
       <?php if (!empty($order['payment_slip'])): ?>
       <p><strong>หลักฐานการชำระเงิน:</strong></p>
       <img class="payment-slip" src="uploads/<?= htmlspecialchars($order['payment_slip']) ?>" alt="หลักฐานการชำระเงิน"
-        style="max-width: 300px;">
+        style="max-width: 300px;" onclick="openModal(this.src)">
       <?php endif; ?>
+
+
 
     </div>
 

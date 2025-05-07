@@ -4,7 +4,7 @@ include_once('../dbconnect.php');
 
 // ตรวจสอบสิทธิ์เข้าใช้งาน
 if (!isset($_SESSION['email']) || $_SESSION['email'] !== 'admin@cc.co') {
-  echo "<script>alert('คุณไม่มีสิทธิ์เข้าถึงหน้านี้'); window.location.href = '../index.php';</script>";
+  echo "<script>alert('คุณไม่มีสิทธิ์เข้าถึงหน้านี้'); window.location.href = '../login.php';</script>";
   exit();
 }
 ?>
