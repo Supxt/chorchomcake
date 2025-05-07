@@ -36,7 +36,7 @@
     </li>
     <ul class="submenu">
       <li><a href="user.php">รายชื่อลูกค้า</a></li>
-      <li><a href="add_user.php">เพิ่มชื่อผู้ใช้</a></li>
+      <!-- <li><a href="add_user.php">เพิ่มชื่อผู้ใช้</a></li> -->
     </ul>
   </ul>
 </div>

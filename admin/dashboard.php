@@ -63,6 +63,7 @@ if ($resultAvailableToday) {
 ?>
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
   <meta charset="UTF-8">
   <title>แดชบอร์ด</title>
@@ -91,7 +92,7 @@ if ($resultAvailableToday) {
       display: flex;
       justify-content: space-around;
       flex-wrap: wrap;
-      margin : 30px
+      margin: 30px
     }
 
     .card {
@@ -170,28 +171,28 @@ if ($resultAvailableToday) {
 
 
   <div class="dashboard-container">
-  <div >
+    <div>
 
-  <div class="text-container-center">
-      <h1 class="text-header" >แดชบอร์ด</h1>
-      
-  </div>
+      <div class="text-container-center">
+        <h1 class="text-header">แดชบอร์ด</h1>
+
+      </div>
 
 
 
-</div>
-<h3>ภาพรวม</h3>
+    </div>
+    <h3>ภาพรวม</h3>
     <div class="stats">
       <div class="card">
         <h3>ยอดจำหน่ายรวม</h3>
-        <p ><?= number_format($totalSales, 2) ?> บาท</p>
+        <p><?= number_format($totalSales, 2) ?> บาท</p>
       </div>
       <div class="card">
         <h3>คำสั่งซื้อวันนี้</h3>
         <p id=""><?= $todayOrders ?> รายการ</p>
 
       </div>
-     
+
       <div class="card">
         <h3>ยอดคำสั่งซื้อรวม</h3>
         <p id=""><?= $totalOrders ?> รายการ</p>
@@ -202,133 +203,132 @@ if ($resultAvailableToday) {
         <p id=""><?= number_format($totalStock) ?> ชิ้น</p>
       </div>
     </div>
-<div>
+    <div>
 
-<h3>สินค้าขายดี</h3>
-<div class="container">
-<?php foreach ($topProducts as $product): ?>
+      <h3>สินค้าขายดี</h3>
+      <div class="container">
+        <?php foreach ($topProducts as $product): ?>
 
-  <div class="product-card">
-    <div href="/product_detail.php?p_id=<?= $product['p_id'] ?>" style="text-decoration: none; color: inherit;">
-      <img src="../image/<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['p_name']) ?>" class="image">
-      <div class="product-info">
-      <strong><?= htmlspecialchars($product['p_name']) ?></strong><br>
-        ขายแล้ว: <?= $product['total_sold'] ?> ชิ้น<br>
-        คงเหลือ: <?= $product['stock_remaining'] ?> ชิ้น<br>
-        ราคา: <?= number_format($product['price'], 2) ?> บาท<br>
+          <div class="product-card">
+            <div href="/product_detail.php?p_id=<?= $product['p_id'] ?>" style="text-decoration: none; color: inherit;">
+              <img src="../image/<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['p_name']) ?>" class="image">
+              <div class="product-info">
+                <strong><?= htmlspecialchars($product['p_name']) ?></strong><br>
+                ขายแล้ว: <?= $product['total_sold'] ?> ชิ้น<br>
+                คงเหลือ: <?= $product['stock_remaining'] ?> ชิ้น<br>
+                ราคา: <?= number_format($product['price'], 2) ?> บาท<br>
+              </div>
+            </div>
+          </div>
+        <?php endforeach; ?>
       </div>
-</div>
-  </div>
-  <?php endforeach; ?>
-  </div>
-    
-  <h3>สถิติยอดขายรวม</h3>
 
-<div class="filter-section">
-  <div>
-    <label>ช่วงเวลา:
-      <select id="timeRange" onchange="updateChart()">
-        <option value="day">วันนี้</option>
-        <option value="week" selected>สัปดาห์นี้</option>
-        <option value="year">ปีนี้</option>
-      </select>
-    </label>
-  </div>
-  <div>
-    <label>หมวดหมู่:
-      <select id="category" onchange="updateChart()">
-        <option value="ทั้งหมด" selected>ทั้งหมด</option>
-        <option value="เค้กมินิมอล">เค้กมินิมอล</option>
-        <option value="เค้กวินเทจ">เค้กวินเทจ</option>
-        <option value="คัพเค้ก">คัพเค้ก</option>
-        <option value="เค้กมะพร้าว">เค้กมะพร้าว</option>
-        <option value="บาน้อฟฟี่เค้ก">บาน้อฟฟี่เค้ก</option>
-      </select>
-    </label>
-  </div>
-</div>
-    <canvas id="salesChart" height="100"></canvas>
+      <h3>สถิติยอดขายรวม</h3>
 
-
-
-
-<h3 style="margin:30px" >สินค้าคงเหลือวันนี้</h3>
-<div class="container">
-  <?php foreach ($availableToday as $product): ?>
-    <div class="product-card">
-      <img src="../image/<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['p_name']) ?>" class="image">
-      <div class="product-info">
-        <strong><?= htmlspecialchars($product['p_name']) ?></strong><br>
-        คงเหลือ: <?= $product['quantity'] ?> ชิ้น<br>
-        ราคา: <?= number_format($product['price'], 2) ?> บาท
+      <div class="filter-section">
+        <div>
+          <label>ช่วงเวลา:
+            <select id="timeRange" onchange="updateChart()">
+              <option value="day">วันนี้</option>
+              <option value="week" selected>สัปดาห์นี้</option>
+              <option value="year">ปีนี้</option>
+            </select>
+          </label>
+        </div>
+        <div>
+          <label>หมวดหมู่:
+            <select id="category" onchange="updateChart()">
+              <option value="ทั้งหมด" selected>ทั้งหมด</option>
+              <option value="เค้กมินิมอล">เค้กมินิมอล</option>
+              <option value="เค้กวินเทจ">เค้กวินเทจ</option>
+              <option value="คัพเค้ก">คัพเค้ก</option>
+              <option value="เค้กมะพร้าว">เค้กมะพร้าว</option>
+              <option value="บาน้อฟฟี่เค้ก">บาน้อฟฟี่เค้ก</option>
+            </select>
+          </label>
+        </div>
       </div>
+      <canvas id="salesChart" height="100"></canvas>
+
+
+
+
+      <h3 style="margin:30px">สินค้าคงเหลือวันนี้</h3>
+      <div class="container">
+        <?php foreach ($availableToday as $product): ?>
+          <div class="product-card">
+            <img src="../image/<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['p_name']) ?>" class="image">
+            <div class="product-info">
+              <strong><?= htmlspecialchars($product['p_name']) ?></strong><br>
+              คงเหลือ: <?= $product['quantity'] ?> ชิ้น<br>
+              ราคา: <?= number_format($product['price'], 2) ?> บาท
+            </div>
+          </div>
+        <?php endforeach; ?>
+      </div>
+
     </div>
-  <?php endforeach; ?>
-</div>
 
-  </div>
-
-  <script>
-    const ctx = document.getElementById('salesChart').getContext('2d');
-    let salesChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัส', 'ศุกร์', 'เสาร์', 'อาทิตย์'],
-        datasets: [{
-          label: 'ยอดขาย (บาท)',
-          data: [1200, 1900, 3000, 2500, 2200, 1300, 1500],
-          backgroundColor: '#DAA994'
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'top'
-          },
-          title: {
-            display: true,
-            text: 'สถิติยอดขาย'
-          }
+    <script>
+      const ctx = document.getElementById('salesChart').getContext('2d');
+      let salesChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัส', 'ศุกร์', 'เสาร์', 'อาทิตย์'],
+          datasets: [{
+            label: 'ยอดขาย (บาท)',
+            data: [1200, 1900, 3000, 2500, 2200, 1300, 1500],
+            backgroundColor: '#DAA994'
+          }]
         },
-        scales: {
-      x: {
-        ticks: {
-          callback: function(value, index, ticks) {
-            // Format from yyyy-mm-dd to dd-mm-yyyy
-            const raw = this.getLabelForValue(value);
-            const [y, m, d] = raw.split("-");
-            return `${d}-${m}-${y}`;
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top'
+            },
+            title: {
+              display: true,
+              text: 'สถิติยอดขาย'
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                callback: function(value, index, ticks) {
+                  // Format from yyyy-mm-dd to dd-mm-yyyy
+                  const raw = this.getLabelForValue(value);
+                  const [y, m, d] = raw.split("-");
+                  return `${d}-${m}-${y}`;
+                }
+              }
+            },
+            y: {
+              beginAtZero: true
+            }
           }
         }
-      },
-      y: {
-        beginAtZero: true
+      });
+
+      async function updateChart() {
+        const range = document.getElementById('timeRange').value;
+        const category = document.getElementById('category').value;
+
+        const res = await fetch(`sales_data.php?range=${range}&category=${category}`);
+        const json = await res.json();
+
+        const labels = json.data.map(row => row.sale_date);
+        const values = json.data.map(row => parseFloat(row.daily_sales));
+
+        salesChart.data.labels = labels;
+        salesChart.data.datasets[0].data = values;
+        salesChart.update();
       }
-    }
-      }
-    });
 
-    async function updateChart() {
-      const range = document.getElementById('timeRange').value;
-      const category = document.getElementById('category').value;
 
-      const res = await fetch(`sales_data.php?range=${range}&category=${category}`);
-      const json = await res.json();
 
-      const labels = json.data.map(row => row.sale_date);
-      const values = json.data.map(row => parseFloat(row.daily_sales));
-
-      salesChart.data.labels = labels;
-      salesChart.data.datasets[0].data = values;
-      salesChart.update();
-    }
-
-    
-
-    updateChart()
-
-  </script>
+      updateChart()
+    </script>
 
 </body>
 
