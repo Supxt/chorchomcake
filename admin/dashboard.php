@@ -29,7 +29,7 @@ if ($result) {
 }
 
 // Total Sales
-$sqlTotalSales = "SELECT SUM(totol) AS total_sales FROM order_details";
+$sqlTotalSales = "SELECT SUM(total) AS total_sales FROM order_details";
 $resTotalSales = mysqli_query($conn, $sqlTotalSales);
 $totalSales = mysqli_fetch_assoc($resTotalSales)['total_sales'] ?? 0;
 
@@ -40,7 +40,7 @@ $totalStock = mysqli_fetch_assoc($resStock)['total_stock'] ?? 0;
 
 // Today's Orders
 $today = date('Y-m-d');
-$sqlTodayOrders = "SELECT COUNT(*) AS today_orders FROM orders WHERE DATE(order_date) = '$today'";
+$sqlTodayOrders = "SELECT COUNT(*) AS today_orders FROM orders WHERE DATE(created_at) = '$today'";
 $resTodayOrders = mysqli_query($conn, $sqlTodayOrders);
 $todayOrders = mysqli_fetch_assoc($resTodayOrders)['today_orders'] ?? 0;
 

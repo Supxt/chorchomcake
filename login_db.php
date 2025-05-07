@@ -26,6 +26,7 @@ if (isset($_POST['login'])) {
             $user = mysqli_fetch_assoc($result); // ดึงข้อมูลผู้ใช้
 
             $_SESSION['email'] = $user['email'];
+            $_SESSION['user_id'] = $user['user_id'];
             $_SESSION['first_name'] = $user['first_name']; // <-- เซฟชื่อจริง
             $_SESSION['success'] = "เข้าสู่ระบบสำเร็จ";
             unset($_SESSION['error']);

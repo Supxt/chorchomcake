@@ -2,11 +2,11 @@
 session_start();
 include_once('../dbconnect.php');
 
-// Fetch all products
-/*
-$sql = "SELECT * FROM product";
-$result = $conn->query($sql); 
-*/
+// ตรวจสอบสิทธิ์เข้าใช้งาน
+if (!isset($_SESSION['email']) || $_SESSION['email'] !== 'admin@cc.co') {
+  echo "<script>alert('คุณไม่มีสิทธิ์เข้าถึงหน้านี้'); window.location.href = '../index.php';</script>";
+  exit();
+}
 ?>
 
 <!DOCTYPE html>

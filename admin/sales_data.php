@@ -16,11 +16,11 @@ if ($range === 'day') {
 }
 
 // Base query
-$sql = "SELECT DATE(o.order_date) AS sale_date, SUM(od.totol) AS daily_sales
+$sql = "SELECT DATE(o.created_at) AS sale_date, SUM(od.total) AS daily_sales
         FROM order_details od
         JOIN orders o ON od.order_id = o.order_id
         JOIN product p ON od.p_id = p.p_id
-        WHERE o.order_date >= '$startDate 00:00:00' AND o.order_date <= '$endDate 23:59:59'";
+        WHERE o.created_at >= '$startDate 00:00:00' AND o.created_at <= '$endDate 23:59:59'";
 
 
 // Optional filter by category
@@ -30,7 +30,7 @@ if ($category !== 'ทั้งหมด') {
             )";
 }
 
-$sql .= " GROUP BY DATE(o.order_date)
+$sql .= " GROUP BY DATE(o.created_at)
           ORDER BY sale_date ASC";
 
 
@@ -41,14 +41,14 @@ $testSql = "
     od.o_id,
     od.order_id,
     o.order_no,
-    o.order_date,
+    o.created_at,
     od.p_id,
     p.p_name AS product_name,
     p.category_id,
     od.product_code,
     od.o_qty,
     od.product_price,
-    od.totol,
+    od.total,
     p.image
   FROM 
     order_details od
@@ -57,7 +57,7 @@ $testSql = "
   JOIN 
     product p ON od.p_id = p.p_id
   ORDER BY 
-    o.order_date DESC
+    o.created_at DESC
 ";
 $testResult = mysqli_query($conn, $testSql);
 
